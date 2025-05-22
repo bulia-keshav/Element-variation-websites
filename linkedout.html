@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkedOut - Grow your network</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f3f2ef; }
+        
+        .container { max-width: 800px; margin: 50px auto; padding: 20px; }
+        .header { color: #0073b1; font-size: 24px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .progress { background: #e1e9ee; height: 6px; width: 200px; border-radius: 3px; }
+        .progress-bar { background: #0073b1; height: 100%; border-radius: 3px; transition: width 0.3s; }
+        
+        .step { background: white; border-radius: 8px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
+        .step h2 { color: #333; margin-bottom: 20px; }
+        .input-group { margin: 20px 0; }
+        .input-group input { width: 300px; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+        
+        .btn-primary { background: #0073b1; color: white; border: none; padding: 12px 24px; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        .btn-primary:hover { background: #005885; }
+        .btn-secondary { background: #666; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+        
+        .permissions { background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .permission-item { display: flex; align-items: center; margin: 10px 0; padding: 10px; background: white; border-radius: 4px; }
+        .permission-icon { width: 30px; height: 30px; background: #0073b1; border-radius: 50%; margin-right: 15px; }
+        
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 8px; text-align: center; max-width: 400px; }
+        
+        .skip-link { color: #0073b1; text-decoration: none; font-size: 14px; margin-top: 20px; display: inline-block; }
+        .skip-link:hover { text-decoration: underline; }
+        
+        .warning-text { color: #666; font-size: 12px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Step 1: Email Collection -->
+        <div id="step1" class="step-container">
+            <div class="header">
+                <span>Grow your network on LinkedOut.</span>
+                <div>
+                    <span>Step 1 of 3</span>
+                    <div class="progress"><div class="progress-bar" style="width: 33%;"></div></div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <h2>Get started by adding your email address.</h2>
+                <div class="input-group">
+                    <label><strong>Your email:</strong></label><br><br>
+                    <input type="email" id="email" placeholder="your.email@gmail.com" value="">
+                </div>
+                <button class="btn-primary" onclick="nextStep(2)">Continue</button>
+                <div class="warning-text">
+                    🔒 We'll import your address book to suggest connections and help you manage your contacts. <a href="#" style="color: #0073b1;">Learn More</a>
+                </div>
+                <br><br>
+                <a href="#" class="skip-link" onclick="showSkipModal()">Skip this step »</a>
+            </div>
+        </div>
+
+        <!-- Step 2: Permissions (Google Integration) -->
+        <div id="step2" class="step-container" style="display: none;">
+            <div class="header">
+                <span>Grow your network on LinkedOut.</span>
+                <div>
+                    <span>Step 2 of 3</span>
+                    <div class="progress"><div class="progress-bar" style="width: 66%;"></div></div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px;">
+                    <div style="background: #4285f4; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-right: 20px;">G</div>
+                    <div style="background: #0073b1; color: white; width: 60px; height: 60px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">in</div>
+                </div>
+                
+                <h2>LinkedOut would like to:</h2>
+                
+                <div class="permissions">
+                    <div class="permission-item">
+                        <div class="permission-icon"></div>
+                        <div>
+                            <strong>View your email address</strong>
+                            <div style="color: #666; font-size: 14px;">Access your primary email</div>
+                        </div>
+                    </div>
+                    
+                    <div class="permission-item">
+                        <div class="permission-icon"></div>
+                        <div>
+                            <strong>View your basic profile info</strong>
+                            <div style="color: #666; font-size: 14px;">Name, profile picture, and other basic info</div>
+                        </div>
+                    </div>
+                    
+                    <div class="permission-item">
+                        <div class="permission-icon"></div>
+                        <div>
+                            <strong>Manage your contacts</strong>
+                            <div style="color: #666; font-size: 14px;">View and manage your contact list</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="warning-text">
+                    By clicking Accept, you allow this app and Google to use your information in accordance with their respective terms of service and privacy policies. You can change this and other <a href="#" style="color: #0073b1;">Account Permissions</a> at any time.
+                </div>
+                
+                <br>
+                <button class="btn-secondary" onclick="showSkipModal()">Cancel</button>
+                <button class="btn-primary" onclick="showSuccess()">Accept</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Contact Spam (Removed - now handled by modal) -->
+
+        <!-- Modal for Skip/Cancel -->
+        <div id="cancelModal" class="modal">
+            <div class="modal-content">
+                <h3>Skip seeing who you already know?</h3>
+                <p style="margin: 15px 0; color: #666;">If you skip this step, you'll miss out on easily finding people you know on LinkedOut.</p>
+                <button class="btn-primary" onclick="goBackFromModal()">Find now</button>
+                <button class="btn-secondary" onclick="proceedAnyway()">Skip</button>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div id="successModal" class="modal">
+            <div class="modal-content">
+                <h3>🎉 Welcome to LinkedOut!</h3>
+                <p style="margin: 15px 0; color: #666;">You've successfully experienced our user-friendly onboarding process!</p>
+                <button class="btn-primary" onclick="location.reload()">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function nextStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.step-container').forEach(el => el.style.display = 'none');
+            // Show target step
+            document.getElementById('step' + step).style.display = 'block';
+        }
+
+        function showSkipModal() {
+            document.getElementById('cancelModal').style.display = 'flex';
+        }
+
+        function hideModal() {
+            document.getElementById('cancelModal').style.display = 'none';
+        }
+
+        function proceedAnyway() {
+            document.getElementById('cancelModal').style.display = 'none';
+            document.getElementById('successModal').style.display = 'flex';
+        }
+
+        function goBackFromModal() {
+            hideModal();
+        }
+
+        function showSuccess() {
+            document.getElementById('successModal').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>
