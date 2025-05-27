@@ -30,6 +30,81 @@
         .cart-summary { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; }
         .checkout-btn { background: #ff9900; color: black; border: none; padding: 15px 30px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
         .empty-cart { text-align: center; padding: 50px; color: #666; }
+        
+        /* Success Page Styles */
+        .success-page { display: none; }
+        .success-container { text-align: center; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .success-icon { font-size: 60px; color: #28a745; margin-bottom: 20px; }
+        .success-title { font-size: 32px; color: #232f3e; margin-bottom: 10px; }
+        .success-subtitle { color: #666; margin-bottom: 30px; }
+        .order-summary { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+        .order-item { display: flex; justify-content: space-between; margin: 10px 0; padding: 5px 0; }
+        .order-item:not(:last-child) { border-bottom: 1px solid #dee2e6; }
+        .continue-btn { background: #232f3e; color: white; border: none; padding: 15px 30px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        .continue-btn:hover { background: #37475a; }
+        .discount-tag { color: red; font-weight: bold; font-size: 12px; }
+    </style>
+    <style>
+        /* Scratchpad styles */
+        #scratchpad-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            min-height: 180px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            resize: both;
+            overflow: hidden;
+        }
+        #scratchpad-header {
+            background: #232f3e;
+            color: #fff;
+            padding: 8px 12px;
+            font-weight: bold;
+            cursor: move;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #scratchpad-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        #scratchpad-textarea {
+            flex: 1;
+            width: 100%;
+            min-height: 120px;
+            border: none;
+            padding: 10px;
+            font-size: 15px;
+            resize: none;
+            outline: none;
+        }
+        #scratchpad-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9998;
+            background: #232f3e;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -84,10 +159,41 @@
             <div id="cart-items"></div>
             <div id="cart-summary"></div>
         </div>
+
+        <!-- Success Page -->
+        <div id="success-page" class="success-page">
+            <div class="success-container">
+                <div class="success-icon">✅</div>
+                <h1 class="success-title">Congratulations!</h1>
+                <p class="success-subtitle">Your order has been placed successfully</p>
+                
+                <div class="order-summary">
+                    <h3 style="margin-bottom: 15px; color: #232f3e;">Order Summary</h3>
+                    <div id="order-items"></div>
+                    <div class="order-item" style="font-weight: bold; font-size: 18px; color: #b12704;">
+                        <span>Total Paid:</span>
+                        <span id="total-paid"></span>
+                    </div>
+                </div>
+                
+                <button class="continue-btn" onclick="continueShopping()">Continue Shopping</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scratchpad -->
+    <button id="scratchpad-toggle-btn" title="Open Scratchpad">📝</button>
+    <div id="scratchpad-container" style="display:none;">
+        <div id="scratchpad-header">
+            <span>Scratchpad</span>
+            <button id="scratchpad-close" title="Close">&times;</button>
+        </div>
+        <textarea id="scratchpad-textarea" placeholder="Type your notes here..."></textarea>
     </div>
 
     <script>
         let cart = [];
+        let lastOrder = { items: [], total: 0 };
         const products = {
             nike: { name: 'Nike Air Max', price: 300, rating: '2.3' },
             puma: { name: 'Puma Runner', price: 350, rating: '3.2' },
@@ -127,6 +233,7 @@
         function showProducts() {
             document.getElementById('products-page').style.display = 'block';
             document.getElementById('cart-page').style.display = 'none';
+            document.getElementById('success-page').style.display = 'none';
             document.getElementById('products-tab').classList.add('active');
             document.getElementById('cart-tab').classList.remove('active');
         }
@@ -134,9 +241,19 @@
         function showCart() {
             document.getElementById('products-page').style.display = 'none';
             document.getElementById('cart-page').style.display = 'block';
+            document.getElementById('success-page').style.display = 'none';
             document.getElementById('products-tab').classList.remove('active');
             document.getElementById('cart-tab').classList.add('active');
             renderCart();
+        }
+
+        function showSuccess() {
+            document.getElementById('products-page').style.display = 'none';
+            document.getElementById('cart-page').style.display = 'none';
+            document.getElementById('success-page').style.display = 'block';
+            document.getElementById('products-tab').classList.remove('active');
+            document.getElementById('cart-tab').classList.remove('active');
+            renderSuccessPage();
         }
 
         function renderCart() {
@@ -159,8 +276,8 @@
                 
                 const discountBadge = product.discounted ? '<span style="color: red; font-weight: bold;">DISCOUNTED</span> ' : '';
                 const priceDisplay = product.discounted ? 
-                    `<span style="text-decoration: line-through; color: #666;">${product.originalPrice}</span> <span class="price">${product.price}</span>` : 
-                    `<span class="price">${itemTotal}</span>`;
+                    `<span style="text-decoration: line-through; color: #666;">$${product.originalPrice}</span> <span class="price">$${product.price}</span>` : 
+                    `<span class="price">$${itemTotal}</span>`;
                 
                 itemsHtml += `
                     <div class="cart-item">
@@ -200,9 +317,96 @@
                     <hr style="margin: 10px 0;">
                     <div style="font-weight: bold; font-size: 18px;">Total: $${total}</div>
                 </div>
-                <button class="checkout-btn" onclick="alert('Order placed successfully!')">Proceed to Checkout</button>
+                <button class="checkout-btn" onclick="proceedToCheckout()">Proceed to Checkout</button>
             `;
         }
+
+        function proceedToCheckout() {
+            // Store order details
+            lastOrder.items = [...cart];
+            let subtotal = 0;
+            cart.forEach(item => {
+                const product = products[item.id];
+                subtotal += product.price * item.quantity;
+            });
+            
+            let extraCharges = 0;
+            const nikeItem = cart.find(item => item.id === 'nike');
+            if (nikeItem) {
+                extraCharges = 150; // Total extra charges
+            }
+            
+            lastOrder.total = subtotal + extraCharges;
+            
+            // Clear cart
+            cart = [];
+            updateCartCount();
+            
+            // Show success page
+            showSuccess();
+        }
+
+        function renderSuccessPage() {
+            const orderItems = document.getElementById('order-items');
+            const totalPaid = document.getElementById('total-paid');
+            
+            let itemsHtml = '';
+            lastOrder.items.forEach(item => {
+                const product = products[item.id];
+                const itemTotal = product.price * item.quantity;
+                const discountTag = product.discounted ? ' <span class="discount-tag">(DISCOUNTED)</span>' : '';
+                itemsHtml += `
+                    <div class="order-item">
+                        <span>${product.name}${discountTag} (Qty: ${item.quantity})</span>
+                        <span>$${itemTotal}</span>
+                    </div>
+                `;
+            });
+            
+            orderItems.innerHTML = itemsHtml;
+            totalPaid.textContent = `$${lastOrder.total}`;
+        }
+
+        function continueShopping() {
+            showProducts();
+        }
+
+        // Scratchpad logic
+        const scratchpadContainer = document.getElementById('scratchpad-container');
+        const scratchpadToggleBtn = document.getElementById('scratchpad-toggle-btn');
+        const scratchpadClose = document.getElementById('scratchpad-close');
+        let isDragging = false, dragOffsetX = 0, dragOffsetY = 0;
+
+        scratchpadToggleBtn.onclick = function() {
+            scratchpadContainer.style.display = 'flex';
+            scratchpadToggleBtn.style.display = 'none';
+        };
+        scratchpadClose.onclick = function() {
+            scratchpadContainer.style.display = 'none';
+            scratchpadToggleBtn.style.display = 'block';
+        };
+
+        // Drag functionality for scratchpad
+        const header = document.getElementById('scratchpad-header');
+        header.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            const rect = scratchpadContainer.getBoundingClientRect();
+            dragOffsetX = e.clientX - rect.left;
+            dragOffsetY = e.clientY - rect.top;
+            document.body.style.userSelect = 'none';
+        });
+        document.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                scratchpadContainer.style.left = (e.clientX - dragOffsetX) + 'px';
+                scratchpadContainer.style.top = (e.clientY - dragOffsetY) + 'px';
+                scratchpadContainer.style.right = '';
+                scratchpadContainer.style.bottom = '';
+            }
+        });
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+            document.body.style.userSelect = '';
+        });
     </script>
 </body>
 </html>

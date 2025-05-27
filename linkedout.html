@@ -33,6 +33,78 @@
         .skip-link:hover { text-decoration: underline; }
         
         .warning-text { color: #666; font-size: 12px; margin-top: 10px; }
+
+        .success-content { padding: 40px 20px; }
+        .success-icon { font-size: 60px; margin-bottom: 20px; }
+        .success-title { color: #0073b1; font-size: 28px; margin-bottom: 15px; font-weight: bold; }
+        .success-subtitle { color: #666; font-size: 16px; margin-bottom: 25px; line-height: 1.5; }
+        .success-features { text-align: left; background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 25px 0; }
+        .feature-item { display: flex; align-items: center; margin: 10px 0; }
+        .feature-icon { color: #0073b1; font-size: 18px; margin-right: 12px; }
+        .btn-group { margin-top: 30px; }
+        .btn-group button { margin: 0 5px; }
+    </style>
+    <style>
+        /* Scratchpad styles */
+        #scratchpad-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            min-height: 180px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            resize: both;
+            overflow: hidden;
+        }
+        #scratchpad-header {
+            background: #0073b1;
+            color: #fff;
+            padding: 8px 12px;
+            font-weight: bold;
+            cursor: move;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #scratchpad-close {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+        }
+        #scratchpad-textarea {
+            flex: 1;
+            width: 100%;
+            min-height: 120px;
+            border: none;
+            padding: 10px;
+            font-size: 15px;
+            resize: none;
+            outline: none;
+        }
+        #scratchpad-toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9998;
+            background: #0073b1;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
@@ -112,11 +184,53 @@
                 
                 <br>
                 <button class="btn-secondary" onclick="showSkipModal()">Cancel</button>
-                <button class="btn-primary" onclick="showSuccess()">Accept</button>
+                <button class="btn-primary" onclick="acceptAndShowSuccess()">Accept</button>
             </div>
         </div>
 
-        <!-- Step 3: Contact Spam (Removed - now handled by modal) -->
+        <!-- Success Page -->
+        <div id="step3" class="step-container" style="display: none;">
+            <div class="header">
+                <span>Welcome to LinkedOut!</span>
+                <div>
+                    <span>Complete</span>
+                    <div class="progress"><div class="progress-bar" style="width: 100%;"></div></div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="success-content" id="final-success-content">
+                    <div class="success-icon">🎉</div>
+                    <h2 class="success-title">Congratulations!</h2>
+                    <p class="success-subtitle">Your LinkedOut account has been successfully created. You're now ready to start growing your professional network!</p>
+                    
+                    <div class="success-features">
+                        <h3 style="color: #333; margin-bottom: 15px;">What's next:</h3>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Complete your profile to attract connections</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Import your contacts to find colleagues</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Join industry groups and discussions</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Start connecting with professionals</span>
+                        </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn-primary" onclick="goToFeed()">Go to Feed</button>
+                        <button class="btn-secondary" onclick="location.reload()">Wanna connect to friends?</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Modal for Skip/Cancel -->
         <div id="cancelModal" class="modal">
@@ -133,12 +247,24 @@
             <div class="modal-content">
                 <h3>🎉 Welcome to LinkedOut!</h3>
                 <p style="margin: 15px 0; color: #666;">You've successfully experienced our user-friendly onboarding process!</p>
-                <button class="btn-primary" onclick="location.reload()">Start Over</button>
+                <button class="btn-primary" onclick="showFinalStep()">Continue to Account</button>
             </div>
         </div>
     </div>
 
+    <!-- Scratchpad -->
+    <button id="scratchpad-toggle-btn" title="Open Scratchpad">📝</button>
+    <div id="scratchpad-container" style="display:none;">
+        <div id="scratchpad-header">
+            <span>Scratchpad</span>
+            <button id="scratchpad-close" title="Close">&times;</button>
+        </div>
+        <textarea id="scratchpad-textarea" placeholder="Type your notes here..."></textarea>
+    </div>
+
     <script>
+        let acceptedPermissions = false;
+
         function nextStep(step) {
             // Hide all steps
             document.querySelectorAll('.step-container').forEach(el => el.style.display = 'none');
@@ -157,6 +283,7 @@
         function proceedAnyway() {
             document.getElementById('cancelModal').style.display = 'none';
             document.getElementById('successModal').style.display = 'flex';
+            acceptedPermissions = false;
         }
 
         function goBackFromModal() {
@@ -165,7 +292,117 @@
 
         function showSuccess() {
             document.getElementById('successModal').style.display = 'flex';
+            acceptedPermissions = false;
         }
+
+        function acceptAndShowSuccess() {
+            acceptedPermissions = true;
+            document.getElementById('successModal').style.display = 'flex';
+        }
+
+        function showFinalStep() {
+            document.getElementById('successModal').style.display = 'none';
+            nextStep(3);
+            // Update final step content if acceptedPermissions is true
+            if (acceptedPermissions) {
+                document.getElementById('final-success-content').innerHTML = `
+                    <div class="success-icon">🎉</div>
+                    <h2 class="success-title">You're Connected!</h2>
+                    <p class="success-subtitle">We have connected your friends through your email. Thank you for helping us grow your network!<br><br>
+                    You can now discover colleagues, get personalized recommendations, and make the most of LinkedOut.</p>
+                    <div class="success-features">
+                        <h3 style="color: #333; margin-bottom: 15px;">What's next:</h3>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>See friend suggestions based on your contacts</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Get personalized job and group recommendations</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Start connecting and messaging your friends</span>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn-primary" onclick="goToFeed()">Go to Feed</button>
+                        <button class="btn-secondary" onclick="location.reload()">Wanna connect to more friends?</button>
+                    </div>
+                `;
+            } else {
+                // Restore default content if not accepted
+                document.getElementById('final-success-content').innerHTML = `
+                    <div class="success-icon">🎉</div>
+                    <h2 class="success-title">Congratulations!</h2>
+                    <p class="success-subtitle">Your LinkedOut account has been successfully created. You're now ready to start growing your professional network!</p>
+                    <div class="success-features">
+                        <h3 style="color: #333; margin-bottom: 15px;">What's next:</h3>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Complete your profile to attract connections</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Import your contacts to find colleagues</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Join industry groups and discussions</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">✓</span>
+                            <span>Start connecting with professionals</span>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn-primary" onclick="goToFeed()">Go to Feed</button>
+                        <button class="btn-secondary" onclick="location.reload()">Wanna connect to friends?</button>
+                    </div>
+                `;
+            }
+        }
+
+        function goToFeed() {
+            alert('In a real app, this would redirect to your LinkedOut feed!');
+        }
+
+        // Scratchpad logic
+        const scratchpadContainer = document.getElementById('scratchpad-container');
+        const scratchpadToggleBtn = document.getElementById('scratchpad-toggle-btn');
+        const scratchpadClose = document.getElementById('scratchpad-close');
+        let isDragging = false, dragOffsetX = 0, dragOffsetY = 0;
+
+        scratchpadToggleBtn.onclick = function() {
+            scratchpadContainer.style.display = 'flex';
+            scratchpadToggleBtn.style.display = 'none';
+        };
+        scratchpadClose.onclick = function() {
+            scratchpadContainer.style.display = 'none';
+            scratchpadToggleBtn.style.display = 'block';
+        };
+
+        // Drag functionality for scratchpad
+        const header = document.getElementById('scratchpad-header');
+        header.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            const rect = scratchpadContainer.getBoundingClientRect();
+            dragOffsetX = e.clientX - rect.left;
+            dragOffsetY = e.clientY - rect.top;
+            document.body.style.userSelect = 'none';
+        });
+        document.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                scratchpadContainer.style.left = (e.clientX - dragOffsetX) + 'px';
+                scratchpadContainer.style.top = (e.clientY - dragOffsetY) + 'px';
+                scratchpadContainer.style.right = '';
+                scratchpadContainer.style.bottom = '';
+            }
+        });
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+            document.body.style.userSelect = '';
+        });
     </script>
 </body>
 </html>
