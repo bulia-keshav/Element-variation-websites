@@ -1,0 +1,12 @@
+Prompts:
+We need to edit this website to implement these changes: <website_code>
+I want to implement this functionable <element_name> in <framework> with this  <feature>.There exist a dropdown on the main page, modify it. , Modification enough so that element can be used. Keep in mind, i am making this website as part of my 24 framework <24 framework, give it list of all frameworks> variation of the elements where basically the framework will be changed one by one over the same element, and currently we are doing it for <framework_name>… 
+Also note: there should be minimal or no overlap between current framework and other frameworks so current framework should not include other framework’s code unless necessary, if so confirm that too.
+Before proceeding can you tell me where i can implement this element and how it will function? then wait for my confirmation, and proceed
+\
+
+Generalised:
+We need to edit this website to implement these changes: <website_code>
+I want to implement this functionable <element_name> in <framework> with these  <feature. if the element type dosent exist already we can modify this website to add this element somewhere. if the element exist, modify it. either way, Modification enough so that element can be used. Keep in mind, i am making this website as part of my <24 framework variation> of the elemets where basically the same element will be changed one by one over 24 different frameworks, and currently we are doing it for <framework_name>
+Also note: there should be minimal or no overlap between current framework and other frameworks so current framework should not include other framework’s code unless necessary, if so confirm that too.
+Before proceeding can you tell me where i can implement this element and how it will function? then wait for my confirmation, and proceed
