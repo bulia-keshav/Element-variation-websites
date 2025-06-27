@@ -25,33 +25,30 @@ export interface FilterSelection {
         <span>{{ selectedText }}</span>
         <span class="dropdown-arrow" [ngClass]="{'rotated': isOpen}">▼</span>
       </button>
-      
-      <div class="dropdown-menu" [style.display]="isOpen ? 'block' : 'none'">
+       <div class="dropdown-menu" [style.display]="isOpen ? 'block' : 'none'">
         <div 
           *ngFor="let item of menuItems" 
           class="dropdown-item"
           [ngClass]="{'has-submenu': item.children && item.children.length > 0}"
-          (mouseenter)="onItemHover(item)"
           (click)="onItemClick(item, $event)">
           
           <span>{{ item.label }}</span>
           
           <!-- Level 2 Submenu -->
           <div 
-            *ngIf="item.children && item.children.length > 0 && hoveredItem === item"
+            *ngIf="item.children && item.children.length > 0 && activeItem === item"
             class="dropdown-submenu">
             <div 
               *ngFor="let subItem of item.children"
               class="dropdown-item"
               [ngClass]="{'has-submenu': subItem.children && subItem.children.length > 0}"
-              (mouseenter)="onSubItemHover(subItem)"
-              (click)="onItemClick(subItem, $event)">
+              (click)="onSubItemClick(subItem, $event)">
               
               <span>{{ subItem.label }}</span>
-              
+
               <!-- Level 3 Submenu -->
               <div 
-                *ngIf="subItem.children && subItem.children.length > 0 && hoveredSubItem === subItem"
+                *ngIf="subItem.children && subItem.children.length > 0 && activeSubItem === subItem"
                 class="dropdown-submenu-l3">
                 <div 
                   *ngFor="let subSubItem of subItem.children"
@@ -163,8 +160,8 @@ export class MultiLevelDropdownComponent {
   @Output() selectionChange = new EventEmitter<FilterSelection>();
 
   isOpen: boolean = false;
-  hoveredItem: MenuItem | null = null;
-  hoveredSubItem: MenuItem | null = null;
+  activeItem: MenuItem | null = null;
+  activeSubItem: MenuItem | null = null;
 
   menuItems: MenuItem[] = [
     {
@@ -217,24 +214,22 @@ export class MultiLevelDropdownComponent {
   toggleDropdown(): void {
     this.isOpen = !this.isOpen;
     if (!this.isOpen) {
-      this.resetHoverStates();
+      this.resetActiveStates();
     }
   }
 
-  onItemHover(item: MenuItem): void {
-    this.hoveredItem = item;
-    this.hoveredSubItem = null;
-  }
-
-  onSubItemHover(subItem: MenuItem): void {
-    this.hoveredSubItem = subItem;
-  }
-
   onItemClick(item: MenuItem, event: Event): void {
-    // Only handle clicks on items without children (leaf nodes)
-    if (!item.children || item.children.length === 0) {
+    if (item.children && item.children.length > 0) {
       event.stopPropagation();
-      // This would be for direct category selection if needed
+      this.activeItem = this.activeItem === item ? null : item;
+      this.activeSubItem = null; // Close level 3 when toggling level 2
+    }
+  }
+
+  onSubItemClick(subItem: MenuItem, event: Event): void {
+    if (subItem.children && subItem.children.length > 0) {
+      event.stopPropagation();
+      this.activeSubItem = this.activeSubItem === subItem ? null : subItem;
     }
   }
 
@@ -263,12 +258,12 @@ export class MultiLevelDropdownComponent {
 
   private closeDropdown(): void {
     this.isOpen = false;
-    this.resetHoverStates();
+    this.resetActiveStates();
   }
 
-  private resetHoverStates(): void {
-    this.hoveredItem = null;
-    this.hoveredSubItem = null;
+  private resetActiveStates(): void {
+    this.activeItem = null;
+    this.activeSubItem = null;
   }
 }
 
