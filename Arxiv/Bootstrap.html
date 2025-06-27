@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Search - Bootstrap</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        
+        .main-container {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .form-section {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+        
+        .search-row {
+            margin-bottom: 0.75rem;
+        }
+        
+        .add-term-btn {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+        
+        .add-term-btn:hover {
+            background: #e9ecef;
+            border-color: #dee2e6;
+            color: #6c757d;
+        }
+        
+        .highlight-text {
+            background-color: #fff3cd;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+        }
+        
+        .note-text {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.75rem;
+            line-height: 1.4;
+        }
+        
+        .date-inputs {
+            margin-left: 1.25rem;
+            margin-top: 0.75rem;
+        }
+        
+        .results-per-page {
+            margin-top: 1rem;
+        }
+        
+        .final-search-btn {
+            margin-top: 1.25rem;
+        }
+        
+        .success-message {
+            display: none;
+            margin-top: 1.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container main-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <h1 class="mb-4 text-center">Advanced Search</h1>
+                
+                <form id="advancedSearchForm">
+                    <!-- Search Terms Section -->
+                    <div class="form-section">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Search term(s)</label>
+                            <div id="searchTerms">
+                                <div class="search-row">
+                                    <div class="row g-2">
+                                        <div class="col-md-8">
+                                            <input type="text" class="form-control search-term" placeholder="Search term...">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <select class="form-select search-field">
+                                                <option value="title">Title</option>
+                                                <option value="author">Author</option>
+                                                <option value="abstract">Abstract</option>
+                                                <option value="comment">Comment</option>
+                                                <option value="journal">Journal</option>
+                                                <option value="subject">Subject</option>
+                                                <option value="report">Report</option>
+                                                <option value="all">All fields</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button type="button" class="btn add-term-btn me-2" onclick="addSearchTerm()">
+                                    <i class="bi bi-plus-circle"></i> Add another term
+                                </button>
+                                <button type="button" class="btn btn-primary search-btn">
+                                    <i class="bi bi-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subject Section -->
+                    <div class="form-section">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Subject</label>
+                            <p class="text-muted mb-3">All classifications will be included by default</p>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="cs" name="subject" value="cs">
+                                        <label class="form-check-label" for="cs">Computer Science (cs)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center">
+                                        <div class="form-check me-2">
+                                            <input class="form-check-input" type="checkbox" id="physics" name="subject" value="physics">
+                                            <label class="form-check-label" for="physics">Physics</label>
+                                        </div>
+                                        <select class="form-select form-select-sm" style="width: 80px;">
+                                            <option value="all">all</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="econ" name="subject" value="econ">
+                                        <label class="form-check-label" for="econ">Economics (econ)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="q-bio" name="subject" value="q-bio">
+                                        <label class="form-check-label" for="q-bio">Quantitative Biology (q-bio)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="eess" name="subject" value="eess">
+                                        <label class="form-check-label" for="eess">Electrical Engineering and Systems Science (eess)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="q-fin" name="subject" value="q-fin">
+                                        <label class="form-check-label" for="q-fin">Quantitative Finance (q-fin)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="math" name="subject" value="math">
+                                        <label class="form-check-label" for="math">Mathematics (math)</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="stat" name="subject" value="stat">
+                                        <label class="form-check-label" for="stat">Statistics (stat)</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" id="include-cross" name="cross-listed" value="include" checked>
+                                    <label class="form-check-label" for="include-cross">Include cross-listed papers</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" id="exclude-cross" name="cross-listed" value="exclude">
+                                    <label class="form-check-label" for="exclude-cross">Exclude cross-listed papers</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date Section -->
+                    <div class="form-section">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Date</label>
+                            
+                            <div class="mb-3">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" id="all-dates" name="date-filter" value="all" checked>
+                                    <label class="form-check-label" for="all-dates">All dates</label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" id="past-12" name="date-filter" value="past-12">
+                                    <label class="form-check-label" for="past-12">Past 12 months</label>
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" id="specific-year" name="date-filter" value="specific">
+                                    <label class="form-check-label" for="specific-year">Specific year</label>
+                                    <input type="text" placeholder="YYYY" class="form-control d-inline-block ms-2" style="width: 100px;">
+                                </div>
+                                
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" id="date-range" name="date-filter" value="range">
+                                    <label class="form-check-label" for="date-range">Date range</label>
+                                </div>
+                            </div>
+
+                            <div class="date-inputs">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-auto">
+                                        <span class="text-muted">From</span>
+                                    </div>
+                                    <div class="col-auto">
+                                        <input type="text" placeholder="YYYY[-MM[-DD]]" class="form-control" style="width: 150px;">
+                                    </div>
+                                    <div class="col-auto">
+                                        <span class="text-muted">to</span>
+                                    </div>
+                                    <div class="col-auto">
+                                        <input type="text" placeholder="YYYY[-MM[-DD]]" class="form-control" style="width: 150px;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="note-text">
+                                When limiting by date range, the lower bound of the "from" date and the upper bound of the "to" date are used.
+                                For example, searching with <span class="highlight-text">From: 2012-02</span> and <span class="highlight-text">To: 2013</span> will search for papers submitted from <span class="highlight-text">2012-02-01</span> to <span class="highlight-text">2013-12-31</span>
+                            </div>
+
+                            <div class="mt-3">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" id="submission-recent" name="date-type" value="submission-recent" checked>
+                                    <label class="form-check-label" for="submission-recent">Submission date (most recent)</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" id="submission-original" name="date-type" value="submission-original">
+                                    <label class="form-check-label" for="submission-original">Submission date (original)</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" id="announcement" name="date-type" value="announcement">
+                                    <label class="form-check-label" for="announcement">Announcement date</label>
+                                </div>
+                            </div>
+
+                            <div class="note-text">
+                                You may filter on either submission date or announcement date. Note that announcement date supports only year and month granularity.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Display Options Section -->
+                    <div class="form-section">
+                        <div class="mb-3">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="show-abstracts" name="abstracts" value="show" checked>
+                                <label class="form-check-label" for="show-abstracts">Show abstracts</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" id="hide-abstracts" name="abstracts" value="hide">
+                                <label class="form-check-label" for="hide-abstracts">Hide abstracts</label>
+                            </div>
+                        </div>
+
+                        <div class="results-per-page">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-auto">
+                                    <select class="form-select results-select">
+                                        <option value="25">25</option>
+                                        <option value="50" selected>50</option>
+                                        <option value="100">100</option>
+                                        <option value="200">200</option>
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <span class="text-muted">results per page</span>
+                                </div>
+                                <div class="col-auto">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="include-older" name="include-older">
+                                        <label class="form-check-label" for="include-older">Include older versions of papers</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="final-search-btn">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <button type="submit" class="btn btn-primary btn-lg px-5">
+                                    <i class="bi bi-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="successMessage" class="alert alert-success success-message" role="alert">
+                    <i class="bi bi-check-circle"></i> Form submitted successfully!
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function addSearchTerm() {
+            const searchTermsContainer = document.getElementById('searchTerms');
+            const newRow = document.createElement('div');
+            newRow.className = 'search-row';
+            newRow.innerHTML = `
+                <div class="row g-2">
+                    <div class="col-md-8">
+                        <input type="text" class="form-control search-term" placeholder="Search term...">
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select search-field">
+                            <option value="title">Title</option>
+                            <option value="author">Author</option>
+                            <option value="abstract">Abstract</option>
+                            <option value="comment">Comment</option>
+                            <option value="journal">Journal</option>
+                            <option value="subject">Subject</option>
+                            <option value="report">Report</option>
+                            <option value="all">All fields</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            searchTermsContainer.appendChild(newRow);
+        }
+
+        function collectSearchParameters() {
+            const params = new URLSearchParams();
+            
+            // Collect search terms
+            const searchRows = document.querySelectorAll('.search-row');
+            const searchTerms = [];
+            searchRows.forEach(row => {
+                const term = row.querySelector('.search-term').value.trim();
+                const field = row.querySelector('.search-field').value;
+                if (term) {
+                    searchTerms.push({ term, field });
+                }
+            });
+            if (searchTerms.length > 0) {
+                params.set('searchTerms', JSON.stringify(searchTerms));
+            }
+            
+            // Collect subject filters
+            const subjects = [];
+            document.querySelectorAll('input[name="subject"]:checked').forEach(checkbox => {
+                subjects.push(checkbox.value);
+            });
+            if (subjects.length > 0) {
+                params.set('subjects', subjects.join(','));
+            }
+            
+            // Cross-listed papers option
+            const crossListed = document.querySelector('input[name="cross-listed"]:checked').value;
+            params.set('crossListed', crossListed);
+            
+            // Date filtering
+            const dateFilter = document.querySelector('input[name="date-filter"]:checked').value;
+            params.set('dateFilter', dateFilter);
+            
+            if (dateFilter === 'specific') {
+                const year = document.querySelector('input[placeholder="YYYY"]').value.trim();
+                if (year) params.set('specificYear', year);
+            } else if (dateFilter === 'range') {
+                const fromDate = document.querySelector('input[placeholder="YYYY[-MM[-DD]]"]').value.trim();
+                const toDate = document.querySelectorAll('input[placeholder="YYYY[-MM[-DD]]"]')[1].value.trim();
+                if (fromDate) params.set('fromDate', fromDate);
+                if (toDate) params.set('toDate', toDate);
+            }
+            
+            // Date type
+            const dateType = document.querySelector('input[name="date-type"]:checked').value;
+            params.set('dateType', dateType);
+            
+            // Display options
+            const showAbstracts = document.querySelector('input[name="abstracts"]:checked').value;
+            params.set('showAbstracts', showAbstracts);
+            
+            const resultsPerPage = document.querySelector('.results-select').value;
+            params.set('resultsPerPage', resultsPerPage);
+            
+            const includeOlder = document.querySelector('#include-older').checked;
+            params.set('includeOlder', includeOlder);
+            
+            return params;
+        }
+
+        function performSearch() {
+            const params = collectSearchParameters();
+            // Redirect to results page with search parameters
+            window.location.href = `Data.html?${params.toString()}`;
+        }
+
+        document.getElementById('advancedSearchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            performSearch();
+        });
+
+        // Handle search button clicks (not just form submission)
+        document.querySelectorAll('.search-btn').forEach(btn => {
+            if (btn.type !== 'submit') {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    performSearch();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
