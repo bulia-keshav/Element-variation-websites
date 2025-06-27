@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin: 0;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+        }
+
+        .search-info {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .results-count {
+            margin-bottom: 20px;
+            color: #666;
+        }
+
+        .paper {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .paper-id {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .paper-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 8px;
+        }
+
+        .paper-title a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .paper-title a:hover {
+            text-decoration: underline;
+        }
+
+        .paper-authors {
+            color: #666;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .paper-subjects {
+            margin-bottom: 10px;
+        }
+
+        .subject-tag {
+            background: #007bff;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-right: 5px;
+        }
+
+        .cross-listed {
+            background: #6c757d;
+        }
+
+        .paper-dates {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .paper-abstract {
+            margin-top: 10px;
+            line-height: 1.5;
+            color: #444;
+        }
+
+        .paper-metadata {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .highlight {
+            background-color: yellow;
+            font-weight: bold;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            gap: 10px;
+        }
+
+        .pagination button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .pagination button:hover {
+            background: #0056b3;
+        }
+
+        .pagination button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Search Results</h1>
+            <a href="Vanillajs.html" class="back-btn">← Back to Search</a>
+        </div>
+
+        <div id="searchInfo" class="search-info" style="display: none;"></div>
+        
+        <div id="resultsCount" class="results-count"></div>
+        
+        <div id="resultsContainer"></div>
+        
+        <div id="pagination" class="pagination"></div>
+    </div>
+
+    <script>
+        // Original data
+        const papersData = [
+  {
+    "id": "2506.12345",
+    "title": "Advances in Graph Neural Networks for Temporal Data Analysis",
+    "authors": ["Alice Zhang", "Bob Chen"],
+    "abstract": "This paper explores novel graph neural network architectures for processing temporal data, focusing on dynamic graph structures in real-time applications. We propose a new attention mechanism to improve performance in time-series forecasting.",
+    "primary_subject": "cs.LG",
+    "cross_listed_subjects": ["cs.AI", "stat.ML"],
+    "submission_date": "2025-06-26",
+    "announcement_date": "2025-06-27",
+    "journal_ref": null,
+    "comments": "Accepted at NeurIPS 2025",
+    "report_number": null,
+    "version": "v1"
+  },
+  {
+    "id": "2506.12353",
+    "title": "Neural Network Compression for Mobile Applications",
+    "authors": ["Alice Zhang"],
+    "abstract": "We present a method for compressing neural networks to enable efficient deployment on mobile devices, using knowledge distillation and pruning.",
+    "primary_subject": "cs.LG",
+    "cross_listed_subjects": ["cs.CV"],
+    "submission_date": "2025-06-24",
+    "announcement_date": "2025-06-25",
+    "journal_ref": null,
+    "comments": "8 pages, submitted to ICML 2025",
+    "report_number": "TR-2025-002",
+    "version": "v1"
+  },
+  {
+    "id": "2506.12354",
+    "title": "Older Neural Network Study",
+    "authors": ["Alice Zhang", "Clara Kim"],
+    "abstract": "An early study on convolutional neural networks for image classification, exploring transfer learning techniques.",
+    "primary_subject": "cs.CV",
+    "cross_listed_subjects": ["cs.LG"],
+    "submission_date": "2025-06-10",
+    "announcement_date": "2025-06-11",
+    "journal_ref": null,
+    "comments": null,
+    "report_number": null,
+    "version": "v2"
+  },
+  {
+    "id": "2506.12346",
+    "title": "Efficient Convolutional Neural Networks for Edge Devices",
+    "authors": ["Clara Kim"],
+    "abstract": "We present a lightweight CNN model optimized for edge devices, achieving high accuracy with minimal computational overhead.",
+    "primary_subject": "cs.LG",
+    "cross_listed_subjects": ["eess.SP"],
+    "submission_date": "2025-06-25",
+    "announcement_date": "2025-06-26",
+    "journal_ref": "Journal of Embedded Systems, 2025",
+    "comments": null,
+    "report_number": "TR-2025-001",
+    "version": "v1"
+  },
+  {
+    "id": "2506.12350",
+    "title": "Neural Network-Based Image Segmentation",
+    "authors": ["Ivy Tran"],
+    "abstract": null,
+    "primary_subject": "cs.CV",
+    "cross_listed_subjects": ["cs.LG"],
+    "submission_date": "2025-06-21",
+    "announcement_date": "2025-06-22",
+    "journal_ref": null,
+    "comments": "Preliminary work, abstract forthcoming",
+    "report_number": null,
+    "version": "v1"
+  }
+];
+
+        let currentPage = 1;
+        let resultsPerPage = 50;
+        let filteredPapers = [];
+        let searchParams = {};
+        let showAbstracts = true;
+
+        function parseURLParameters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            searchParams = {};
+            
+            // Parse search terms
+            if (urlParams.has('searchTerms')) {
+                searchParams.searchTerms = JSON.parse(urlParams.get('searchTerms'));
+            }
+            
+            // Parse subjects
+            if (urlParams.has('subjects')) {
+                searchParams.subjects = urlParams.get('subjects').split(',');
+            }
+            
+            // Parse other parameters
+            searchParams.crossListed = urlParams.get('crossListed') || 'include';
+            searchParams.dateFilter = urlParams.get('dateFilter') || 'all';
+            searchParams.dateType = urlParams.get('dateType') || 'submission-recent';
+            searchParams.specificYear = urlParams.get('specificYear');
+            searchParams.fromDate = urlParams.get('fromDate');
+            searchParams.toDate = urlParams.get('toDate');
+            searchParams.showAbstracts = urlParams.get('showAbstracts') || 'show';
+            searchParams.includeOlder = urlParams.get('includeOlder') === 'true';
+            
+            resultsPerPage = parseInt(urlParams.get('resultsPerPage')) || 50;
+            showAbstracts = searchParams.showAbstracts === 'show';
+        }
+
+        function highlightText(text, searchTerms) {
+            if (!searchTerms || !text) return text;
+            
+            let highlightedText = text;
+            searchTerms.forEach(termObj => {
+                const regex = new RegExp(`(${termObj.term})`, 'gi');
+                highlightedText = highlightedText.replace(regex, '<span class="highlight">$1</span>');
+            });
+            return highlightedText;
+        }
+
+        function matchesSearchTerm(paper, termObj) {
+            const term = termObj.term.toLowerCase();
+            const field = termObj.field;
+            
+            switch (field) {
+                case 'title':
+                    return paper.title && paper.title.toLowerCase().includes(term);
+                case 'author':
+                    return paper.authors && paper.authors.some(author => 
+                        author.toLowerCase().includes(term));
+                case 'abstract':
+                    return paper.abstract && paper.abstract.toLowerCase().includes(term);
+                case 'comment':
+                    return paper.comments && paper.comments.toLowerCase().includes(term);
+                case 'journal':
+                    return paper.journal_ref && paper.journal_ref.toLowerCase().includes(term);
+                case 'subject':
+                    return (paper.primary_subject && paper.primary_subject.toLowerCase().includes(term)) ||
+                           (paper.cross_listed_subjects && paper.cross_listed_subjects.some(subj => 
+                               subj.toLowerCase().includes(term)));
+                case 'report':
+                    return paper.report_number && paper.report_number.toLowerCase().includes(term);
+                case 'all':
+                default:
+                    return (paper.title && paper.title.toLowerCase().includes(term)) ||
+                           (paper.authors && paper.authors.some(author => 
+                               author.toLowerCase().includes(term))) ||
+                           (paper.abstract && paper.abstract.toLowerCase().includes(term)) ||
+                           (paper.comments && paper.comments.toLowerCase().includes(term)) ||
+                           (paper.journal_ref && paper.journal_ref.toLowerCase().includes(term)) ||
+                           (paper.primary_subject && paper.primary_subject.toLowerCase().includes(term)) ||
+                           (paper.cross_listed_subjects && paper.cross_listed_subjects.some(subj => 
+                               subj.toLowerCase().includes(term))) ||
+                           (paper.report_number && paper.report_number.toLowerCase().includes(term));
+            }
+        }
+
+        function matchesSubjectFilter(paper) {
+            if (!searchParams.subjects || searchParams.subjects.length === 0) {
+                return true; // No subject filter
+            }
+            
+            const paperSubjects = [paper.primary_subject];
+            if (searchParams.crossListed === 'include' && paper.cross_listed_subjects) {
+                paperSubjects.push(...paper.cross_listed_subjects);
+            }
+            
+            return searchParams.subjects.some(filterSubject => {
+                return paperSubjects.some(paperSubject => {
+                    if (filterSubject === 'cs') return paperSubject.startsWith('cs.');
+                    if (filterSubject === 'physics') return paperSubject.startsWith('physics') || paperSubject.includes('phys');
+                    if (filterSubject === 'math') return paperSubject.startsWith('math');
+                    if (filterSubject === 'stat') return paperSubject.startsWith('stat');
+                    if (filterSubject === 'econ') return paperSubject.startsWith('econ');
+                    if (filterSubject === 'q-bio') return paperSubject.startsWith('q-bio');
+                    if (filterSubject === 'q-fin') return paperSubject.startsWith('q-fin');
+                    if (filterSubject === 'eess') return paperSubject.startsWith('eess');
+                    return paperSubject.includes(filterSubject);
+                });
+            });
+        }
+
+        function matchesDateFilter(paper) {
+            const dateField = searchParams.dateType === 'announcement' ? 'announcement_date' : 'submission_date';
+            const paperDate = new Date(paper[dateField]);
+            const currentDate = new Date('2025-06-27'); // Current date from context
+            
+            switch (searchParams.dateFilter) {
+                case 'all':
+                    return true;
+                case 'past-12':
+                    const twelveMonthsAgo = new Date(currentDate);
+                    twelveMonthsAgo.setFullYear(currentDate.getFullYear() - 1);
+                    return paperDate >= twelveMonthsAgo;
+                case 'specific':
+                    if (searchParams.specificYear) {
+                        return paperDate.getFullYear() === parseInt(searchParams.specificYear);
+                    }
+                    return true;
+                case 'range':
+                    let fromDate = null, toDate = null;
+                    
+                    if (searchParams.fromDate) {
+                        fromDate = new Date(searchParams.fromDate + (searchParams.fromDate.length === 4 ? '-01-01' : 
+                                           searchParams.fromDate.length === 7 ? '-01' : ''));
+                    }
+                    if (searchParams.toDate) {
+                        const toDateStr = searchParams.toDate;
+                        if (toDateStr.length === 4) {
+                            toDate = new Date(toDateStr + '-12-31');
+                        } else if (toDateStr.length === 7) {
+                            const [year, month] = toDateStr.split('-');
+                            toDate = new Date(year, month, 0); // Last day of month
+                        } else {
+                            toDate = new Date(toDateStr);
+                        }
+                    }
+                    
+                    if (fromDate && paperDate < fromDate) return false;
+                    if (toDate && paperDate > toDate) return false;
+                    return true;
+                default:
+                    return true;
+            }
+        }
+
+        function filterPapers() {
+            filteredPapers = papersData.filter(paper => {
+                // Search terms filter
+                if (searchParams.searchTerms && searchParams.searchTerms.length > 0) {
+                    const matchesAnyTerm = searchParams.searchTerms.some(termObj => 
+                        matchesSearchTerm(paper, termObj));
+                    if (!matchesAnyTerm) return false;
+                }
+                
+                // Subject filter
+                if (!matchesSubjectFilter(paper)) return false;
+                
+                // Date filter
+                if (!matchesDateFilter(paper)) return false;
+                
+                // Version filter
+                if (!searchParams.includeOlder && paper.version !== 'v1') {
+                    return false;
+                }
+                
+                return true;
+            });
+        }
+
+        function displaySearchInfo() {
+            const searchInfo = document.getElementById('searchInfo');
+            let infoText = [];
+            
+            if (searchParams.searchTerms && searchParams.searchTerms.length > 0) {
+                const terms = searchParams.searchTerms.map(t => `"${t.term}" in ${t.field}`).join(', ');
+                infoText.push(`Search terms: ${terms}`);
+            }
+            
+            if (searchParams.subjects && searchParams.subjects.length > 0) {
+                infoText.push(`Subjects: ${searchParams.subjects.join(', ')}`);
+            }
+            
+            if (searchParams.dateFilter !== 'all') {
+                infoText.push(`Date filter: ${searchParams.dateFilter}`);
+            }
+            
+            if (infoText.length > 0) {
+                searchInfo.innerHTML = `<strong>Active filters:</strong> ${infoText.join(' | ')}`;
+                searchInfo.style.display = 'block';
+            }
+        }
+
+        function displayResults() {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultsCount = document.getElementById('resultsCount');
+            
+            resultsCount.textContent = `${filteredPapers.length} results found`;
+            
+            if (filteredPapers.length === 0) {
+                resultsContainer.innerHTML = '<div class="no-results">No papers found matching your search criteria.</div>';
+                return;
+            }
+            
+            const startIndex = (currentPage - 1) * resultsPerPage;
+            const endIndex = Math.min(startIndex + resultsPerPage, filteredPapers.length);
+            const pageResults = filteredPapers.slice(startIndex, endIndex);
+            
+            const resultsHTML = pageResults.map(paper => {
+                const highlightedTitle = searchParams.searchTerms ? 
+                    highlightText(paper.title, searchParams.searchTerms) : paper.title;
+                const highlightedAbstract = searchParams.searchTerms && paper.abstract ? 
+                    highlightText(paper.abstract, searchParams.searchTerms) : paper.abstract;
+                
+                return `
+                    <div class="paper">
+                        <div class="paper-id">arXiv:${paper.id}</div>
+                        <div class="paper-title">
+                            <a href="#" onclick="alert('Paper details would open here')">${highlightedTitle}</a>
+                        </div>
+                        <div class="paper-authors">${paper.authors.join(', ')}</div>
+                        <div class="paper-subjects">
+                            <span class="subject-tag">${paper.primary_subject}</span>
+                            ${paper.cross_listed_subjects.map(subj => 
+                                `<span class="subject-tag cross-listed">${subj}</span>`).join('')}
+                        </div>
+                        <div class="paper-dates">
+                            Submitted: ${paper.submission_date} | Announced: ${paper.announcement_date}
+                        </div>
+                        ${showAbstracts && paper.abstract ? 
+                            `<div class="paper-abstract">${highlightedAbstract}</div>` : ''}
+                        <div class="paper-metadata">
+                            ${paper.comments ? `Comments: ${paper.comments}` : ''}
+                            ${paper.journal_ref ? ` | Journal: ${paper.journal_ref}` : ''}
+                            ${paper.report_number ? ` | Report: ${paper.report_number}` : ''}
+                            | Version: ${paper.version}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            resultsContainer.innerHTML = resultsHTML;
+            
+            // Update pagination
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(filteredPapers.length / resultsPerPage);
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = '';
+            
+            // Previous button
+            paginationHTML += `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>← Previous</button>`;
+            
+            // Page info
+            paginationHTML += `<span>Page ${currentPage} of ${totalPages}</span>`;
+            
+            // Next button
+            paginationHTML += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next →</button>`;
+            
+            pagination.innerHTML = paginationHTML;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredPapers.length / resultsPerPage);
+            if (page >= 1 && page <= totalPages) {
+                currentPage = page;
+                displayResults();
+                window.scrollTo(0, 0);
+            }
+        }
+
+        // Initialize the page
+        parseURLParameters();
+        filterPapers();
+        displaySearchInfo();
+        displayResults();
+    </script>
+</body>
+</html>
