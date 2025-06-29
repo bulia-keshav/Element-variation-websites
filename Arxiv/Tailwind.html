@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Search - Tailwind</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#007bff',
+                        'primary-hover': '#0056b3',
+                        gray: {
+                            50: '#f8f9fa',
+                            100: '#e9ecef',
+                            200: '#dee2e6',
+                            300: '#ced4da',
+                            400: '#adb5bd',
+                            500: '#6c757d',
+                            600: '#495057',
+                            700: '#343a40',
+                            800: '#212529',
+                            900: '#111'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+    <div class="max-w-4xl mx-auto p-5">
+        <div class="bg-white p-8 rounded-lg shadow-md">
+            <h1 class="text-3xl mb-8 text-gray-800 font-normal">Advanced Search - Tailwind</h1>
+            
+            <form id="advancedSearchForm">
+                <!-- Search Terms Section -->
+                <div class="mb-6 border border-gray-300 p-5 rounded-lg">
+                    <div class="mb-4">
+                        <label class="block mb-2 font-bold text-gray-600">Search term(s)</label>
+                        <div id="searchTerms">
+                            <div class="flex gap-3 items-center mb-3">
+                                <input type="text" class="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Search term...">
+                                <select class="w-32 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                                    <option value="title">Title</option>
+                                    <option value="author">Author</option>
+                                    <option value="abstract">Abstract</option>
+                                    <option value="comment">Comment</option>
+                                    <option value="journal">Journal</option>
+                                    <option value="subject">Subject</option>
+                                    <option value="report">Report</option>
+                                    <option value="all">All fields</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <button type="button" class="bg-gray-50 border border-gray-300 px-4 py-2 rounded text-gray-600 hover:bg-gray-100 transition-colors" onclick="addSearchTerm()">Add another term+</button>
+                            <button type="button" class="bg-primary text-white px-5 py-2 rounded text-sm font-bold hover:bg-primary-hover transition-colors">Search</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subject Section -->
+                <div class="mb-6 border border-gray-300 p-5 rounded-lg">
+                    <div class="mb-4">
+                        <label class="block mb-2 font-bold text-gray-600">Subject</label>
+                        <p class="text-gray-600 text-sm mb-3">All classifications will be included by default</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="cs" name="subject" value="cs" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                <label for="cs" class="text-sm">Computer Science (cs)</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="physics" name="subject" value="physics" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                <label for="physics" class="text-sm">Physics</label>
+                                <select class="w-16 ml-3 px-2 py-1 border border-gray-300 rounded text-sm">
+                                    <option value="all">all</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="econ" name="subject" value="econ" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                <label for="econ" class="text-sm">Economics (econ)</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="q-bio" name="subject" value="q-bio" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                <label for="q-bio" class="text-sm">Quantitative Biology (q-bio)</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="eess" name="subject" value="eess" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                <label for="eess" class="text-sm">Electrical Engineering and Systems Science (eess)</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="q-fin" name="subject" value="q-fin" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                <label for="q-fin" class="text-sm">Quantitative Finance (q-fin)</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="math" name="subject" value="math" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                <label for="math" class="text-sm">Mathematics (math)</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" id="stat" name="subject" value="stat" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                                <label for="stat" class="text-sm">Statistics (stat)</label>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-5 mt-3">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" id="include-cross" name="cross-listed" value="include" checked class="w-4 h-4 text-primary focus:ring-primary border-gray-300">
+                                <label for="include-cross" class="text-sm">Include cross-listed papers</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="radio" id="exclude-cross" name="cross-listed" value="exclude" class="w-4 h-4 text-primary focus:ring-primary border-gray-300">
+                                <label for="exclude-cross" class="text-sm">Exclude cross-listed papers</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Date Section -->
+                <div class="mb-6 border border-gray-300 p-5 rounded-lg">
+                    <div class="mb-4">
+                        <label class="block mb-2 font-bold text-gray-600">Date</label>
+                        
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" id="all-dates" name="date-filter" value="all" checked class="w-4 h-4 text-primary focus:ring-primary border-gray-300">
+                                <label for="all-dates" class="text-sm">All dates</label>
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <input type="radio" id="past-12" name="date-filter" value="past-12" class="w-4 h-4 text-primary focus:ring-primary border-gray-300">
+                                <label for="past-12" class="text-sm">Past 12 months</label>
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <input type="radio" id="specific-year" name="date-filter" value="specific" class="w-4 h-4 text-primary focus:ring-primary border-gray-300">
+                                <label for="specific-year" class="text-sm">Specific year</label>
+                                <input type="text" placeholder="YYYY" class="w-24 ml-3 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <input type="radio" id="date-range" name="date-filter" value="range" class="w-4 h-4 text-primary focus:ring-primary border-gray-300">
+                                <label for="date-range" class="text-sm">Date range</label>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3 mt-4 ml-5">
+                            <span class="text-sm">From</span>
+                            <input type="text" placeholder="YYYY[-MM[-DD]]" class="w-36 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <span class="text-sm">to</span>
+                            <input type="text" placeholder="YYYY[-MM[-DD]]" class="w-36 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                        </div>
+
+                        <div class="text-xs text-gray-600 mt-3 leading-relaxed">
+                            When limiting by date range, the lower bound of the "from" date and the upper bound of the "to" date are used.
+                            For example, searching with <span class="bg-yellow-100 px-1 rounded">From: 2012-02</span> and <span class="bg-yellow-100 px-1 rounded">To: 2013</span> will search for papers submitted from <span class="bg-yellow-100 px-1 rounded">2012-02-01</span> to <span class="bg-yellow-100 px-1 rounded">2013-12-31</span>
+                        </div>
+
+                        <div class="flex flex-wrap gap-5 mt-5">
+                            <div class="flex items-center gap-2">
+                                <input type="radio" id="submission-recent" name="date-type" value="submission-recent" checked class="w-4 h-4 text-primary focus:ring-primary border-gray-300">
+                                <label for="submission-recent" class="text-sm">Submission date (most recent)</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="radio" id="submission-original" name="date-type" value="submission-original" class="w-4 h-4 text-primary focus:ring-primary border-gray-300">
+                                <label for="submission-original" class="text-sm">Submission date (original)</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input type="radio" id="announcement" name="date-type" value="announcement" class="w-4 h-4 text-primary focus:ring-primary border-gray-300">
+                                <label for="announcement" class="text-sm">Announcement date</label>
+                            </div>
+                        </div>
+
+                        <div class="text-xs text-gray-600 mt-3 leading-relaxed">
+                            You may filter on either submission date or announcement date. Note that announcement date supports only year and month granularity.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Display Options Section -->
+                <div class="mb-6 border border-gray-300 p-5 rounded-lg">
+                    <div class="flex flex-wrap gap-5 mb-4">
+                        <div class="flex items-center gap-2">
+                            <input type="radio" id="show-abstracts" name="abstracts" value="show" checked class="w-4 h-4 text-primary focus:ring-primary border-gray-300">
+                            <label for="show-abstracts" class="text-sm">Show abstracts</label>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <input type="radio" id="hide-abstracts" name="abstracts" value="hide" class="w-4 h-4 text-primary focus:ring-primary border-gray-300">
+                            <label for="hide-abstracts" class="text-sm">Hide abstracts</label>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                        <select class="w-20 px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="25">25</option>
+                            <option value="50" selected>50</option>
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                        </select>
+                        <span class="text-sm">results per page</span>
+                        <div class="flex items-center gap-2 ml-5">
+                            <input type="checkbox" id="include-older" name="include-older" class="w-4 h-4 text-primary focus:ring-primary border-gray-300 rounded">
+                            <label for="include-older" class="text-sm">Include older versions of papers</label>
+                        </div>
+                    </div>
+
+                    <div class="mt-5">
+                        <button type="submit" class="bg-primary text-white px-5 py-2 rounded text-sm font-bold hover:bg-primary-hover transition-colors">Search</button>
+                    </div>
+                </div>
+            </form>
+
+            <div id="successMessage" class="bg-green-100 text-green-800 border border-green-300 px-4 py-3 rounded mt-5 hidden">
+                Form submitted successfully!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addSearchTerm() {
+            const searchTermsContainer = document.getElementById('searchTerms');
+            const newRow = document.createElement('div');
+            newRow.className = 'flex gap-3 items-center mb-3';
+            newRow.innerHTML = `
+                <input type="text" class="flex-1 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Search term...">
+                <select class="w-32 px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <option value="title">Title</option>
+                    <option value="author">Author</option>
+                    <option value="abstract">Abstract</option>
+                    <option value="comment">Comment</option>
+                    <option value="journal">Journal</option>
+                    <option value="subject">Subject</option>
+                    <option value="report">Report</option>
+                    <option value="all">All fields</option>
+                </select>
+            `;
+            searchTermsContainer.appendChild(newRow);
+        }
+
+        function collectSearchParameters() {
+            const params = new URLSearchParams();
+            
+            // Collect search terms
+            const searchRows = document.querySelectorAll('#searchTerms > div');
+            const searchTerms = [];
+            searchRows.forEach(row => {
+                const term = row.querySelector('input[type="text"]').value.trim();
+                const field = row.querySelector('select').value;
+                if (term) {
+                    searchTerms.push({ term, field });
+                }
+            });
+            if (searchTerms.length > 0) {
+                params.set('searchTerms', JSON.stringify(searchTerms));
+            }
+            
+            // Collect subject filters
+            const subjects = [];
+            document.querySelectorAll('input[name="subject"]:checked').forEach(checkbox => {
+                subjects.push(checkbox.value);
+            });
+            if (subjects.length > 0) {
+                params.set('subjects', subjects.join(','));
+            }
+            
+            // Cross-listed papers option
+            const crossListed = document.querySelector('input[name="cross-listed"]:checked').value;
+            params.set('crossListed', crossListed);
+            
+            // Date filtering
+            const dateFilter = document.querySelector('input[name="date-filter"]:checked').value;
+            params.set('dateFilter', dateFilter);
+            
+            if (dateFilter === 'specific') {
+                const year = document.querySelector('input[placeholder="YYYY"]').value.trim();
+                if (year) params.set('specificYear', year);
+            } else if (dateFilter === 'range') {
+                const fromDate = document.querySelector('input[placeholder="YYYY[-MM[-DD]]"]').value.trim();
+                const toDate = document.querySelectorAll('input[placeholder="YYYY[-MM[-DD]]"]')[1].value.trim();
+                if (fromDate) params.set('fromDate', fromDate);
+                if (toDate) params.set('toDate', toDate);
+            }
+            
+            // Date type
+            const dateType = document.querySelector('input[name="date-type"]:checked').value;
+            params.set('dateType', dateType);
+            
+            // Display options
+            const showAbstracts = document.querySelector('input[name="abstracts"]:checked').value;
+            params.set('showAbstracts', showAbstracts);
+            
+            const resultsPerPage = document.querySelector('select').value;
+            params.set('resultsPerPage', resultsPerPage);
+            
+            const includeOlder = document.querySelector('#include-older').checked;
+            params.set('includeOlder', includeOlder);
+            
+            return params;
+        }
+
+        function performSearch() {
+            const params = collectSearchParameters();
+            // Redirect to results page with search parameters
+            window.location.href = `Data.html?${params.toString()}`;
+        }
+
+        document.getElementById('advancedSearchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            performSearch();
+        });
+
+        // Handle search button clicks (not just form submission)
+        document.querySelectorAll('button[type="button"]').forEach(btn => {
+            if (btn.textContent.includes('Search')) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    performSearch();
+                });
+            }
+        });
+    </script>
+</body>
+</html>

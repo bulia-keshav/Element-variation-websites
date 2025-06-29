@@ -176,13 +176,95 @@
         .pagination span {
             color: #666;
         }
+
+        /* Scratchpad Styles */
+        .scratchpad {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            height: 200px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .scratchpad-header {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+        }
+
+        .scratchpad-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .scratchpad-controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .scratchpad-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .scratchpad-btn:hover {
+            background: #e9ecef;
+        }
+
+        .scratchpad-content {
+            flex: 1;
+            padding: 0;
+        }
+
+        .scratchpad textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            padding: 15px;
+            resize: none;
+            outline: none;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.4;
+            box-sizing: border-box;
+        }
+
+        .scratchpad.minimized {
+            height: 40px;
+        }
+
+        .scratchpad.minimized .scratchpad-content {
+            display: none;
+        }
+
+        .scratchpad.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>Search Results</h1>
-            <a href="Vanillajs.html" class="back-btn">← Back to Search</a>
+            <a href="#" id="backBtn" class="back-btn">← Back to Search</a>
         </div>
 
         <div id="searchInfo" class="search-info" style="display: none;"></div>
@@ -192,6 +274,21 @@
         <div id="resultsContainer"></div>
         
         <div id="pagination" class="pagination"></div>
+    </div>
+
+    <!-- Scratchpad -->
+    <div class="scratchpad" id="scratchpad">
+        <div class="scratchpad-header">
+            <span class="scratchpad-title">📝 Scratchpad</span>
+            <div class="scratchpad-controls">
+                <button class="scratchpad-btn" onclick="toggleScratchpad()">−</button>
+                <button class="scratchpad-btn" onclick="clearScratchpad()">Clear</button>
+                <button class="scratchpad-btn" onclick="hideScratchpad()">×</button>
+            </div>
+        </div>
+        <div class="scratchpad-content">
+            <textarea id="scratchpadText" placeholder="Take notes about search results, save paper IDs, jot down research ideas..."></textarea>
+        </div>
     </div>
 
     <script>
@@ -558,6 +655,81 @@
         filterPapers();
         displaySearchInfo();
         displayResults();
+
+        // Set up dynamic back button
+        const backBtn = document.getElementById('backBtn');
+        const referrer = document.referrer;
+        if (referrer && referrer !== window.location.href) {
+            // If there's a referrer, go back to it
+            backBtn.onclick = function(e) {
+                e.preventDefault();
+                history.back();
+            };
+        } else {
+            // Default fallback to vanillajs.html
+            backBtn.href = 'Vanillajs.html';
+        }
+
+        // Scratchpad functionality
+        let scratchpadMinimized = false;
+        let scratchpadHidden = false;
+
+        function toggleScratchpad() {
+            const scratchpad = document.getElementById('scratchpad');
+            const toggleBtn = document.querySelector('.scratchpad-controls .scratchpad-btn');
+            
+            scratchpadMinimized = !scratchpadMinimized;
+            
+            if (scratchpadMinimized) {
+                scratchpad.classList.add('minimized');
+                toggleBtn.textContent = '+';
+            } else {
+                scratchpad.classList.remove('minimized');
+                toggleBtn.textContent = '−';
+            }
+        }
+
+        function clearScratchpad() {
+            if (confirm('Clear all notes?')) {
+                document.getElementById('scratchpadText').value = '';
+                localStorage.removeItem('scratchpadContent');
+            }
+        }
+
+        function hideScratchpad() {
+            document.getElementById('scratchpad').classList.add('hidden');
+            scratchpadHidden = true;
+        }
+
+        function showScratchpad() {
+            document.getElementById('scratchpad').classList.remove('hidden');
+            scratchpadHidden = false;
+        }
+
+        // Save scratchpad content to localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const textarea = document.getElementById('scratchpadText');
+            const savedContent = localStorage.getItem('scratchpadContent');
+            if (savedContent) {
+                textarea.value = savedContent;
+            }
+
+            textarea.addEventListener('input', function() {
+                localStorage.setItem('scratchpadContent', textarea.value);
+            });
+        });
+
+        // Keyboard shortcut to toggle scratchpad (Ctrl + `)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === '`') {
+                e.preventDefault();
+                if (scratchpadHidden) {
+                    showScratchpad();
+                } else {
+                    toggleScratchpad();
+                }
+            }
+        });
     </script>
 </body>
 </html>
