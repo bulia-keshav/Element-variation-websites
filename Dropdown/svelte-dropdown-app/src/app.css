@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.dropdown-arrow {
+  transition: transform 0.3s ease;
+}
+
+.dropdown-arrow-rotate {
+  transform: rotate(180deg);
+}
+
+/* Ensure dropdown menus are above other content */
+.dropdown-menu {
+  z-index: 1000;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dropdown-submenu {
+  z-index: 1001;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Debug styles */
+.dropdown-item {
+  user-select: none;
+  -webkit-user-select: none;
+}

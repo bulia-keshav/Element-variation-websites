@@ -1,0 +1,21 @@
+{
+  "name": "svelte-dropdown-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite dev",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^2.4.2",
+    "svelte": "^4.0.5",
+    "vite": "^4.4.5"
+  },
+  "dependencies": {
+    "tailwindcss": "^3.3.0",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24"
+  }
+}
