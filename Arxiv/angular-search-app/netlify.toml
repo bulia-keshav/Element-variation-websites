@@ -1,7 +1,7 @@
 # Netlify configuration for Angular Arxiv Search App
 [build]
   base = "Arxiv/angular-search-app"
-  publish = "dist/angular-search-app"
+  publish = "dist/angular-search-app/browser"
   command = "npm install --legacy-peer-deps && npm run build"
 
 [build.environment]
