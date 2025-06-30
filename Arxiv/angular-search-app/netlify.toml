@@ -4,14 +4,14 @@
   publish = "dist/angular-search-app"
   command = "npm install --legacy-peer-deps && npm run build"
 
+[build.environment]
+  NODE_VERSION = "18.x"
+
 # SPA redirect rules for Angular Router
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-
-[build.environment]
-  NODE_VERSION = "18.x"
 
 # Security headers
 [[headers]]
@@ -22,23 +22,6 @@
     X-Content-Type-Options = "nosniff"
 
 # Cache static assets
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    cache-control = "max-age=31536000"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Frame-Options = "DENY"
-    X-XSS-Protection = "1; mode=block"
-    X-Content-Type-Options = "nosniff"
-
 [[headers]]
   for = "/assets/*"
   [headers.values]
