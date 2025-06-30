@@ -1,0 +1,13 @@
+# Netlify configuration for Angular dropdown e-commerce project
+[build]
+  command = "npm install && ng build --configuration production"
+  publish = "dist/angular-ecommerce"
+
+# SPA redirect rules for Angular
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build.environment]
+  NODE_VERSION = "18"
