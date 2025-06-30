@@ -4,6 +4,7 @@
   import ProductsPage from './components/ProductsPage.svelte';
   import CartPage from './components/CartPage.svelte';
   import SuccessPage from './components/SuccessPage.svelte';
+  import Scratchpad from './components/Scratchpad.svelte';
   import { currentPage } from './stores.js';
   
   let page;
@@ -27,4 +28,7 @@
       <SuccessPage />
     {/if}
   </div>
+  
+  <!-- Floating Scratchpad -->
+  <Scratchpad />
 </div>

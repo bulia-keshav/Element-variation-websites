@@ -143,6 +143,145 @@
         </div>
     </div>
 
+    <!-- Floating Scratchpad -->
+    <div id="scratchpad-container" class="fixed bottom-4 right-4 z-50">
+        <div id="scratchpad-panel" class="bg-white border border-gray-300 rounded-lg shadow-lg w-80 h-64 flex flex-col hidden">
+            <!-- Header -->
+            <div class="bg-amazon-blue text-white px-3 py-2 rounded-t-lg flex justify-between items-center">
+                <span class="text-sm font-medium">📝 Scratchpad</span>
+                <div class="flex gap-2">
+                    <button 
+                        onclick="clearScratchpadNotes()"
+                        class="text-white hover:text-amazon-orange text-xs px-1 py-0.5 rounded transition-colors"
+                        title="Clear notes"
+                    >
+                        🗑️
+                    </button>
+                    <button 
+                        onclick="toggleScratchpad()"
+                        class="text-white hover:text-amazon-orange text-xs px-1 py-0.5 rounded transition-colors"
+                        title="Close"
+                    >
+                        ✕
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Notes Area -->
+            <div class="flex-1 p-3">
+                <textarea
+                    id="scratchpad-textarea"
+                    placeholder="Type your notes here... (auto-saved)"
+                    class="w-full h-full resize-none border-none outline-none text-sm"
+                    oninput="saveScratchpadNotes()"
+                ></textarea>
+            </div>
+            
+            <!-- Footer -->
+            <div class="px-3 py-2 border-t border-gray-200 text-xs text-gray-500" id="scratchpad-footer">
+                Auto-saved • 0 characters
+            </div>
+        </div>
+        
+        <!-- Floating Button -->
+        <button
+            id="scratchpad-button"
+            onclick="toggleScratchpad()"
+            class="bg-amazon-blue hover:bg-amazon-blue-light text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg transition-all duration-200 hover:scale-105"
+            title="Open Scratchpad"
+        >
+            📝
+        </button>
+    </div>
+
+    <style>
+        /* Custom scrollbar for scratchpad textarea */
+        #scratchpad-textarea::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #scratchpad-textarea::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        #scratchpad-textarea::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        #scratchpad-textarea::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* Smooth animations for scratchpad */
+        #scratchpad-container {
+            transition: all 0.3s ease;
+        }
+        
+        #scratchpad-button:hover {
+            animation: pulse 0.5s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+    </style>
+
+    <script>
+        // Scratchpad functionality
+        let scratchpadOpen = false;
+        
+        function toggleScratchpad() {
+            scratchpadOpen = !scratchpadOpen;
+            const panel = document.getElementById('scratchpad-panel');
+            const button = document.getElementById('scratchpad-button');
+            
+            if (scratchpadOpen) {
+                panel.classList.remove('hidden');
+                button.classList.add('hidden');
+                loadScratchpadNotes();
+            } else {
+                panel.classList.add('hidden');
+                button.classList.remove('hidden');
+            }
+        }
+        
+        function saveScratchpadNotes() {
+            const textarea = document.getElementById('scratchpad-textarea');
+            const footer = document.getElementById('scratchpad-footer');
+            
+            localStorage.setItem('scratchpad-notes', textarea.value);
+            footer.textContent = `Auto-saved • ${textarea.value.length} characters`;
+        }
+        
+        function loadScratchpadNotes() {
+            const textarea = document.getElementById('scratchpad-textarea');
+            const footer = document.getElementById('scratchpad-footer');
+            const savedNotes = localStorage.getItem('scratchpad-notes') || '';
+            
+            textarea.value = savedNotes;
+            footer.textContent = `Auto-saved • ${savedNotes.length} characters`;
+        }
+        
+        function clearScratchpadNotes() {
+            if (confirm('Are you sure you want to clear all notes?')) {
+                const textarea = document.getElementById('scratchpad-textarea');
+                const footer = document.getElementById('scratchpad-footer');
+                
+                textarea.value = '';
+                localStorage.removeItem('scratchpad-notes');
+                footer.textContent = 'Auto-saved • 0 characters';
+            }
+        }
+        
+    </script>
+
     <script>
         let cart = [];
         let lastOrder = { items: [], total: 0 };
@@ -427,6 +566,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('products-tab').classList.add('bg-amazon-blue-light');
             renderProducts();
+            loadScratchpadNotes();
         });
     </script>
 </body>

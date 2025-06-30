@@ -76,6 +76,11 @@ You can customize the site name in Netlify settings.
 ✅ Shopping cart functionality  
 ✅ Responsive design  
 ✅ Mobile-friendly click interactions  
+✅ **Floating Scratchpad (Bottom Right Corner)**  
+  - Auto-saving notepad for quick notes
+  - Persistent storage in browser
+  - Clean, minimal interface
+  - Toggle open/close with floating button  
 
 ## Local Development
 
