@@ -9,6 +9,11 @@
   const totalResults = writable(0);
   const currentPage = writable(1);
   const showAbstracts = writable(true);
+  
+  // Scratchpad stores
+  const scratchpadMinimized = writable(false);
+  const scratchpadHidden = writable(false);
+  const scratchpadContent = writable('');
 
   // Mock data for demonstration - copied from Data.html
   const mockResults = [
@@ -129,6 +134,12 @@
       totalResults.set(filteredResults.length);
       loading.set(false);
     }, 500);
+    
+    // Load saved scratchpad content
+    const savedContent = localStorage.getItem('scratchpadContent');
+    if (savedContent) {
+      scratchpadContent.set(savedContent);
+    }
   });
 
   function filterResults(allResults, params) {
@@ -238,6 +249,43 @@
     }
     return `${authors[0]}, ${authors[1]}, et al.`;
   }
+
+  // Save scratchpad content to localStorage
+  $: if ($scratchpadContent !== undefined) {
+    localStorage.setItem('scratchpadContent', $scratchpadContent);
+  }
+
+  // Scratchpad functions
+  function toggleScratchpad() {
+    scratchpadMinimized.update(value => !value);
+  }
+
+  function clearScratchpad() {
+    if (confirm('Clear all notes?')) {
+      scratchpadContent.set('');
+      localStorage.removeItem('scratchpadContent');
+    }
+  }
+
+  function hideScratchpad() {
+    scratchpadHidden.set(true);
+  }
+
+  function showScratchpad() {
+    scratchpadHidden.set(false);
+  }
+
+  // Keyboard shortcut to toggle scratchpad (Ctrl + `)
+  function handleKeydown(event) {
+    if (event.ctrlKey && event.key === '`') {
+      event.preventDefault();
+      if ($scratchpadHidden) {
+        showScratchpad();
+      } else {
+        toggleScratchpad();
+      }
+    }
+  }
 </script>
 
 <div class="container">
@@ -340,6 +388,36 @@
     </div>
   {/if}
 </div>
+
+<!-- Scratchpad -->
+<div class="scratchpad {$scratchpadMinimized ? 'minimized' : ''} {$scratchpadHidden ? 'hidden' : ''}" id="scratchpad">
+  <div class="scratchpad-header">
+    <span class="scratchpad-title">📝 Scratchpad</span>
+    <div class="scratchpad-controls">
+      <button class="scratchpad-btn" on:click={toggleScratchpad}>
+        {$scratchpadMinimized ? '+' : '−'}
+      </button>
+      <button class="scratchpad-btn" on:click={clearScratchpad}>Clear</button>
+      <button class="scratchpad-btn" on:click={hideScratchpad}>×</button>
+    </div>
+  </div>
+  <div class="scratchpad-content">
+    <textarea 
+      bind:value={$scratchpadContent}
+      placeholder="Take notes about search results, save paper IDs, jot down research ideas..."
+    ></textarea>
+  </div>
+</div>
+
+<!-- Show Scratchpad Button (when hidden) -->
+{#if $scratchpadHidden}
+  <button class="show-scratchpad-btn" on:click={showScratchpad}>
+    📝 Notes
+  </button>
+{/if}
+
+<!-- Keyboard event handler -->
+<svelte:window on:keydown={handleKeydown} />
 
 <style>
   .container {
@@ -519,5 +597,108 @@
 
   .no-results h3 {
     margin-bottom: 10px;
+  }
+
+  /* Scratchpad Styles */
+  .scratchpad {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 300px;
+    height: 250px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    font-family: inherit;
+  }
+
+  .scratchpad-header {
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;
+  }
+
+  .scratchpad-title {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .scratchpad-controls {
+    display: flex;
+    gap: 5px;
+  }
+
+  .scratchpad-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #666;
+  }
+
+  .scratchpad-btn:hover {
+    background: #e9ecef;
+  }
+
+  .scratchpad-content {
+    flex: 1;
+    padding: 0;
+  }
+
+  .scratchpad textarea {
+    width: 100%;
+    height: 100%;
+    border: none;
+    padding: 15px;
+    resize: none;
+    outline: none;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    box-sizing: border-box;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .scratchpad.minimized {
+    height: 40px;
+  }
+
+  .scratchpad.minimized .scratchpad-content {
+    display: none;
+  }
+
+  .scratchpad.hidden {
+    display: none;
+  }
+
+  /* Show scratchpad button when hidden */
+  .show-scratchpad-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    font-size: 14px;
+    z-index: 999;
+  }
+
+  .show-scratchpad-btn:hover {
+    background: #0056b3;
   }
 </style>
