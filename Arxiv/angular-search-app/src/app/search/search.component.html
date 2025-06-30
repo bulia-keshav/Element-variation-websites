@@ -1,0 +1,150 @@
+<div class="container">
+  <h1>Advanced Search</h1>
+  
+  <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
+    <!-- Search Terms Section -->
+    <div class="form-section">
+      <div class="form-group">
+        <label>Search term(s)</label>
+        <div formArrayName="searchTerms">
+          <div *ngFor="let searchTerm of searchTermsArray.controls; let i = index" 
+               [formGroupName]="i" class="search-row">
+            <input type="text" formControlName="term" class="search-term" placeholder="Search term...">
+            <select formControlName="field" class="search-field">
+              <option *ngFor="let field of searchFields" [value]="field.value">
+                {{ field.label }}
+              </option>
+            </select>
+            <button type="button" *ngIf="searchTermsArray.length > 1" 
+                    (click)="removeSearchTerm(i)" class="remove-btn">×</button>
+          </div>
+        </div>
+        <button type="button" class="add-term-btn" (click)="addSearchTerm()">Add another term+</button>
+        <button type="button" class="search-btn" (click)="onSearch()" style="margin-left: 10px;">Search</button>
+      </div>
+    </div>
+
+    <!-- Subject Section -->
+    <div class="form-section">
+      <div class="form-group">
+        <label>Subject</label>
+        <p style="color: #666; font-size: 14px; margin: 10px 0;">All classifications will be included by default</p>
+        
+        <div class="checkbox-group">
+          <div class="checkbox-item" *ngFor="let subject of subjects">
+            <input type="checkbox" 
+                   [id]="subject.value" 
+                   [checked]="isSubjectSelected(subject.value)"
+                   (change)="onSubjectChange(subject.value, $any($event.target).checked)">
+            <label [for]="subject.value">{{ subject.label }}</label>
+          </div>
+        </div>
+
+        <div class="radio-group">
+          <div class="radio-item">
+            <input type="radio" id="include-cross" formControlName="crossListed" value="include">
+            <label for="include-cross">Include cross-listed papers</label>
+          </div>
+          <div class="radio-item">
+            <input type="radio" id="exclude-cross" formControlName="crossListed" value="exclude">
+            <label for="exclude-cross">Exclude cross-listed papers</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date Section -->
+    <div class="form-section">
+      <div class="form-group">
+        <label>Date</label>
+        
+        <div class="radio-group" style="flex-direction: column; align-items: flex-start; gap: 15px;">
+          <div class="radio-item">
+            <input type="radio" id="all-dates" formControlName="dateFilter" value="all">
+            <label for="all-dates">All dates</label>
+          </div>
+          
+          <div class="radio-item">
+            <input type="radio" id="past-12" formControlName="dateFilter" value="past-12">
+            <label for="past-12">Past 12 months</label>
+          </div>
+          
+          <div class="radio-item">
+            <input type="radio" id="specific-year" formControlName="dateFilter" value="specific">
+            <label for="specific-year">Specific year</label>
+            <input type="text" formControlName="specificYear" placeholder="YYYY" 
+                   class="date-input" style="width: 100px; margin-left: 10px;">
+          </div>
+          
+          <div class="radio-item">
+            <input type="radio" id="date-range" formControlName="dateFilter" value="range">
+            <label for="date-range">Date range</label>
+          </div>
+        </div>
+
+        <div class="date-inputs" style="margin-left: 20px;">
+          <span>From</span>
+          <input type="text" formControlName="fromDate" placeholder="YYYY[-MM[-DD]]" class="date-input">
+          <span>to</span>
+          <input type="text" formControlName="toDate" placeholder="YYYY[-MM[-DD]]" class="date-input">
+        </div>
+
+        <div class="note-text">
+          When limiting by date range, the lower bound of the "from" date and the upper bound of the "to" date are used.
+          For example, searching with <span class="highlight-text">From: 2012-02</span> and <span class="highlight-text">To: 2013</span> will search for papers submitted from <span class="highlight-text">2012-02-01</span> to <span class="highlight-text">2013-12-31</span>
+        </div>
+
+        <div class="radio-group" style="margin-top: 20px;">
+          <div class="radio-item">
+            <input type="radio" id="submission-recent" formControlName="dateType" value="submission-recent">
+            <label for="submission-recent">Submission date (most recent)</label>
+          </div>
+          <div class="radio-item">
+            <input type="radio" id="submission-original" formControlName="dateType" value="submission-original">
+            <label for="submission-original">Submission date (original)</label>
+          </div>
+          <div class="radio-item">
+            <input type="radio" id="announcement" formControlName="dateType" value="announcement">
+            <label for="announcement">Announcement date</label>
+          </div>
+        </div>
+
+        <div class="note-text">
+          You may filter on either submission date or announcement date. Note that announcement date supports only year and month granularity.
+        </div>
+      </div>
+    </div>
+
+    <!-- Display Options Section -->
+    <div class="form-section">
+      <div class="radio-group">
+        <div class="radio-item">
+          <input type="radio" id="show-abstracts" formControlName="showAbstracts" value="show">
+          <label for="show-abstracts">Show abstracts</label>
+        </div>
+        <div class="radio-item">
+          <input type="radio" id="hide-abstracts" formControlName="showAbstracts" value="hide">
+          <label for="hide-abstracts">Hide abstracts</label>
+        </div>
+      </div>
+
+      <div class="results-per-page">
+        <select formControlName="resultsPerPage" class="results-select">
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+        </select>
+        <span>results per page</span>
+        <div class="checkbox-item" style="margin-left: 20px;">
+          <input type="checkbox" id="include-older" formControlName="includeOlder">
+          <label for="include-older">Include older versions of papers</label>
+        </div>
+      </div>
+
+      <div class="final-search-btn">
+        <button type="submit" class="search-btn">Search</button>
+      </div>
+    </div>
+  </form>
+</div>

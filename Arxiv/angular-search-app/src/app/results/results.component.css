@@ -1,0 +1,164 @@
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 30px;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #eee;
+}
+
+h1 {
+  font-size: 28px;
+  color: #333;
+  margin: 0;
+}
+
+.back-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.back-btn:hover {
+  background: #5a6268;
+}
+
+.search-info {
+  background: #e9ecef;
+  padding: 15px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.results-count {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.paper {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: #fafafa;
+}
+
+.paper-id {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.paper-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 8px;
+}
+
+.paper-title a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.paper-title a:hover {
+  text-decoration: underline;
+}
+
+.paper-authors {
+  color: #666;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.paper-subjects {
+  margin-bottom: 10px;
+}
+
+.subject-tag {
+  background: #007bff;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  margin-right: 5px;
+}
+
+.cross-listed {
+  background: #6c757d;
+}
+
+.paper-dates {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.paper-abstract {
+  margin-top: 10px;
+  line-height: 1.5;
+  color: #444;
+}
+
+.paper-metadata {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+.no-results {
+  text-align: center;
+  padding: 50px;
+  color: #666;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+  gap: 10px;
+}
+
+.pagination button {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.pagination button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.pagination span {
+  color: #666;
+}
+
+/* Highlight styles */
+:host ::ng-deep .highlight {
+  background-color: yellow;
+  font-weight: bold;
+}

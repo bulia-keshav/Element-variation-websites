@@ -1,0 +1,53 @@
+<div class="container">
+  <div class="header">
+    <h1>Search Results</h1>
+    <button class="back-btn" (click)="backToSearch()">← Back to Search</button>
+  </div>
+
+  <div *ngIf="searchInfo.length > 0" class="search-info">
+    <strong>Active filters:</strong> {{ searchInfo.join(' | ') }}
+  </div>
+  
+  <div class="results-count">
+    {{ filteredPapers.length }} results found
+  </div>
+  
+  <div class="results-container">
+    <div *ngIf="filteredPapers.length === 0" class="no-results">
+      No papers found matching your search criteria.
+    </div>
+    
+    <div *ngFor="let paper of paginatedResults" class="paper">
+      <div class="paper-id">arXiv:{{ paper.id }}</div>
+      <div class="paper-title">
+        <a href="#" (click)="openPaperDetails(paper); $event.preventDefault()" 
+           [innerHTML]="getHighlightedText(paper.title)"></a>
+      </div>
+      <div class="paper-authors">{{ paper.authors.join(', ') }}</div>
+      <div class="paper-subjects">
+        <span class="subject-tag">{{ paper.primary_subject }}</span>
+        <span *ngFor="let subject of paper.cross_listed_subjects" 
+              class="subject-tag cross-listed">{{ subject }}</span>
+      </div>
+      <div class="paper-dates">
+        Submitted: {{ paper.submission_date }} | Announced: {{ paper.announcement_date }}
+      </div>
+      <div *ngIf="showAbstracts && paper.abstract" class="paper-abstract" 
+           [innerHTML]="getHighlightedText(paper.abstract)"></div>
+      <div class="paper-metadata">
+        <span *ngIf="paper.comments">Comments: {{ paper.comments }}</span>
+        <span *ngIf="paper.journal_ref"> | Journal: {{ paper.journal_ref }}</span>
+        <span *ngIf="paper.report_number"> | Report: {{ paper.report_number }}</span>
+        <span> | Version: {{ paper.version }}</span>
+      </div>
+    </div>
+  </div>
+  
+  <div *ngIf="totalPages > 1" class="pagination">
+    <button (click)="changePage(currentPage - 1)" 
+            [disabled]="currentPage === 1">← Previous</button>
+    <span>Page {{ currentPage }} of {{ totalPages }}</span>
+    <button (click)="changePage(currentPage + 1)" 
+            [disabled]="currentPage === totalPages">Next →</button>
+  </div>
+</div>

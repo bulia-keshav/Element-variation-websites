@@ -1,0 +1,28 @@
+<div class="scratchpad" [class.minimized]="isMinimized" [class.hidden]="isHidden">
+  <div class="scratchpad-header">
+    <span class="scratchpad-title">📝 Scratchpad</span>
+    <div class="scratchpad-controls">
+      <button class="scratchpad-btn" (click)="toggleScratchpad()" 
+              [title]="isMinimized ? 'Expand' : 'Minimize'">
+        {{ isMinimized ? '+' : '−' }}
+      </button>
+      <button class="scratchpad-btn" (click)="clearNotes()" title="Clear notes">
+        Clear
+      </button>
+      <button class="scratchpad-btn" (click)="hideScratchpad()" title="Close">
+        ×
+      </button>
+    </div>
+  </div>
+  <div class="scratchpad-content" *ngIf="!isMinimized">
+    <textarea 
+      [(ngModel)]="notes"
+      (input)="onNotesChange()"
+      placeholder="Take notes about search results, save paper IDs, jot down research ideas..."
+      class="scratchpad-textarea">
+    </textarea>
+  </div>
+  <div class="scratchpad-footer" *ngIf="!isMinimized">
+    Auto-saved • {{ characterCount }} characters
+  </div>
+</div>
