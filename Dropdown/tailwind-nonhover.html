@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleZon - Shop Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'amazon-blue': '#232f3e',
+                        'amazon-blue-light': '#37475a',
+                        'amazon-orange': '#ff9900',
+                        'amazon-orange-dark': '#e68900',
+                        'amazon-red': '#b12704'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .dropdown-arrow-rotate {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="font-sans bg-gray-100">
+    <!-- Header -->
+    <div class="bg-amazon-blue text-white px-5 py-2.5 flex justify-between items-center">
+        <div class="text-2xl font-bold">SimpleZon</div>
+        <div class="flex gap-5">
+            <a href="#" onclick="showProducts()" class="text-white no-underline px-3 py-2 rounded hover:bg-amazon-blue-light transition-colors" id="products-tab">Products</a>
+            <a href="#" onclick="showCart()" class="text-white no-underline px-3 py-2 rounded hover:bg-amazon-blue-light transition-colors" id="cart-tab">
+                Cart 
+                <span class="bg-amazon-orange text-black rounded-full px-1.5 py-0.5 text-xs ml-1" id="cart-count">0</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto my-5 px-5">
+        <!-- Products Page -->
+        <div id="products-page">
+            <h1 class="text-3xl font-bold text-amazon-blue mb-5">Shop Our Products</h1>
+            
+            <!-- Multilevel Dropdown Filter -->
+            <div class="relative inline-block my-5" id="dropdown-container">
+                <button class="bg-amazon-blue text-white px-5 py-3 border-none rounded cursor-pointer text-base flex items-center gap-2 hover:bg-amazon-blue-light transition-colors" onclick="toggleDropdown()">
+                    <span>All Products</span>
+                    <span class="dropdown-arrow transition-transform duration-300">▼</span>
+                </button>
+                <div class="dropdown-menu absolute top-full left-0 bg-white border border-gray-300 rounded shadow-lg min-w-[200px] z-50 hidden">
+                    <div class="dropdown-item px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50 has-submenu" onclick="toggleSubmenu(event, this)">
+                        <span>Men</span>
+                        <span class="text-gray-600">►</span>
+                        <div class="dropdown-submenu absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[180px] hidden">
+                            <div class="dropdown-item px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50 has-submenu" onclick="toggleSubmenu(event, this)">
+                                <span>Shoes</span>
+                                <span class="text-gray-600">►</span>
+                                <div class="dropdown-submenu-l3 absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] hidden">
+                                    <div class="dropdown-item px-4 py-3 cursor-pointer hover:bg-gray-50" onclick="filterProducts('men', 'shoes', 'nike')">Nike</div>
+                                    <div class="dropdown-item px-4 py-3 cursor-pointer hover:bg-gray-50" onclick="filterProducts('men', 'shoes', 'adidas')">Adidas</div>
+                                </div>
+                            </div>
+                            <div class="dropdown-item px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50 has-submenu" onclick="toggleSubmenu(event, this)">
+                                <span>Clothing</span>
+                                <span class="text-gray-600">►</span>
+                                <div class="dropdown-submenu-l3 absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] hidden">
+                                    <div class="dropdown-item px-4 py-3 cursor-pointer hover:bg-gray-50" onclick="filterProducts('men', 'clothing', 'tshirts')">T-Shirts</div>
+                                    <div class="dropdown-item px-4 py-3 cursor-pointer hover:bg-gray-50" onclick="filterProducts('men', 'clothing', 'jeans')">Jeans</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown-item px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50 has-submenu" onclick="toggleSubmenu(event, this)">
+                        <span>Women</span>
+                        <span class="text-gray-600">►</span>
+                        <div class="dropdown-submenu absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[180px] hidden">
+                            <div class="dropdown-item px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50 has-submenu" onclick="toggleSubmenu(event, this)">
+                                <span>Shoes</span>
+                                <span class="text-gray-600">►</span>
+                                <div class="dropdown-submenu-l3 absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] hidden">
+                                    <div class="dropdown-item px-4 py-3 cursor-pointer hover:bg-gray-50" onclick="filterProducts('women', 'shoes', 'nike')">Nike</div>
+                                    <div class="dropdown-item px-4 py-3 cursor-pointer hover:bg-gray-50" onclick="filterProducts('women', 'shoes', 'adidas')">Adidas</div>
+                                </div>
+                            </div>
+                            <div class="dropdown-item px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50 has-submenu" onclick="toggleSubmenu(event, this)">
+                                <span>Electronics</span>
+                                <span class="text-gray-600">►</span>
+                                <div class="dropdown-submenu-l3 absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] hidden">
+                                    <div class="dropdown-item px-4 py-3 cursor-pointer hover:bg-gray-50" onclick="filterProducts('women', 'electronics', 'headphones')">Headphones</div>
+                                    <div class="dropdown-item px-4 py-3 cursor-pointer hover:bg-gray-50" onclick="filterProducts('women', 'electronics', 'smartwatch')">Smartwatch</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown-item px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50 has-submenu" onclick="toggleSubmenu(event, this)">
+                        <span>Home</span>
+                        <span class="text-gray-600">►</span>
+                        <div class="dropdown-submenu absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[180px] hidden">
+                            <div class="dropdown-item px-4 py-3 cursor-pointer hover:bg-gray-50" onclick="filterProducts('home', 'garden', 'plants')">Plants</div>
+                            <div class="dropdown-item px-4 py-3 cursor-pointer hover:bg-gray-50" onclick="filterProducts('home', 'decor', 'candles')">Candles</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Featured Products Section -->
+            <div class="products-section">
+                <h2 class="text-2xl font-semibold text-amazon-blue my-5" id="products-title">Featured Products</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mt-5" id="products-grid">
+                    <!-- Products will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Cart Page -->
+        <div id="cart-page" class="hidden">
+            <h1 class="text-3xl font-bold text-amazon-blue mb-5">Shopping Cart</h1>
+            <div id="cart-items"></div>
+            <div id="cart-summary"></div>
+        </div>
+
+        <!-- Success Page -->
+        <div id="success-page" class="hidden">
+            <div class="text-center bg-white p-10 rounded-lg shadow-lg">
+                <div class="text-6xl text-green-500 mb-5">✅</div>
+                <h1 class="text-3xl font-bold text-amazon-blue mb-2.5">Congratulations!</h1>
+                <p class="text-gray-600 mb-7">Your order has been placed successfully</p>
+                
+                <div class="bg-gray-50 p-5 rounded-lg my-5 text-left">
+                    <h3 class="mb-4 text-amazon-blue font-semibold">Order Summary</h3>
+                    <div id="order-items"></div>
+                    <div class="flex justify-between font-bold text-lg text-amazon-red border-t border-gray-300 pt-2 mt-2">
+                        <span>Total Paid:</span>
+                        <span id="total-paid"></span>
+                    </div>
+                </div>
+                
+                <button class="bg-amazon-blue text-white border-none px-7 py-4 rounded cursor-pointer font-bold mt-5 hover:bg-amazon-blue-light transition-colors" onclick="continueShopping()">Continue Shopping</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        let lastOrder = { items: [], total: 0 };
+        let currentFilter = 'featured';
+        
+        const products = {
+            // Featured Products (shown initially)
+            headphones: { name: 'Wireless Headphones', price: 89, rating: '4.2', category: 'electronics', description: 'Bluetooth noise-canceling headphones', gender: 'women', subcategory: 'electronics', brand: 'headphones' },
+            smartwatch: { name: 'Smart Fitness Watch', price: 199, rating: '4.4', category: 'electronics', description: 'Track your fitness and health metrics', gender: 'women', subcategory: 'electronics', brand: 'smartwatch' },
+            tshirt: { name: 'Cotton T-Shirt', price: 25, rating: '4.0', category: 'clothing', description: 'Comfortable 100% cotton t-shirt', gender: 'men', subcategory: 'clothing', brand: 'tshirts' },
+            plant: { name: 'Indoor Plant Set', price: 45, rating: '4.5', category: 'home', description: 'Set of 3 air-purifying plants', gender: 'home', subcategory: 'garden', brand: 'plants' },
+            candle: { name: 'Scented Candles Pack', price: 32, rating: '4.2', category: 'home', description: 'Pack of 4 aromatherapy candles', gender: 'home', subcategory: 'decor', brand: 'candles' },
+            
+            // Nike Products (only visible through dropdown)
+            nike_air_max_90: { name: 'Nike Air Max 90', price: 110, rating: '4.6', category: 'shoes', description: 'Classic Air Max with visible air cushioning', gender: 'men', subcategory: 'shoes', brand: 'nike' },
+            nike_air_max_pro: { name: 'Nike Air Max Pro', price: 95, rating: '4.5', category: 'shoes', description: 'Professional running shoes with advanced cushioning', gender: 'men', subcategory: 'shoes', brand: 'nike' },
+            nike_air_max_270: { name: 'Nike Air Max 270', price: 130, rating: '4.7', category: 'shoes', description: 'Lifestyle shoes with maximum Air unit', gender: 'men', subcategory: 'shoes', brand: 'nike' },
+            nike_women_air_max: { name: 'Nike Women Air Max', price: 105, rating: '4.4', category: 'shoes', description: 'Stylish women\'s Air Max sneakers', gender: 'women', subcategory: 'shoes', brand: 'nike' },
+            
+            // Other brand products
+            adidas_ultraboost: { name: 'Adidas Ultraboost', price: 180, rating: '4.7', category: 'shoes', description: 'Premium running shoes with boost technology', gender: 'men', subcategory: 'shoes', brand: 'adidas' },
+            adidas_women: { name: 'Adidas Women Sneakers', price: 140, rating: '4.3', category: 'shoes', description: 'Comfortable women\'s sneakers', gender: 'women', subcategory: 'shoes', brand: 'adidas' },
+            jeans: { name: 'Denim Jeans', price: 65, rating: '4.3', category: 'clothing', description: 'Classic fit blue denim jeans', gender: 'men', subcategory: 'clothing', brand: 'jeans' }
+        };
+
+        function toggleDropdown() {
+            const container = document.getElementById('dropdown-container');
+            const menu = container.querySelector('.dropdown-menu');
+            const arrow = container.querySelector('.dropdown-arrow');
+            
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                arrow.classList.add('dropdown-arrow-rotate');
+            } else {
+                menu.classList.add('hidden');
+                arrow.classList.remove('dropdown-arrow-rotate');
+                closeAllSubmenus();
+            }
+        }
+
+        function toggleSubmenu(event, element) {
+            event.stopPropagation();
+            
+            // Close all other submenus at the same level and their children
+            const parent = element.parentElement;
+            const siblings = parent.querySelectorAll('.dropdown-item.has-submenu');
+            siblings.forEach(sibling => {
+                if (sibling !== element) {
+                    const submenu = sibling.querySelector('.dropdown-submenu, .dropdown-submenu-l3');
+                    if (submenu) {
+                        submenu.classList.add('hidden');
+                    }
+                    // Close any nested submenus
+                    const nestedSubmenus = sibling.querySelectorAll('.dropdown-submenu, .dropdown-submenu-l3');
+                    nestedSubmenus.forEach(nested => {
+                        nested.classList.add('hidden');
+                    });
+                }
+            });
+            
+            // Toggle the clicked submenu
+            const submenu = element.querySelector('.dropdown-submenu, .dropdown-submenu-l3');
+            if (submenu) {
+                submenu.classList.toggle('hidden');
+            }
+        }
+
+        function closeAllSubmenus() {
+            const submenus = document.querySelectorAll('.dropdown-submenu, .dropdown-submenu-l3');
+            submenus.forEach(submenu => {
+                submenu.classList.add('hidden');
+            });
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('dropdown-container');
+            if (!container.contains(event.target)) {
+                const menu = container.querySelector('.dropdown-menu');
+                const arrow = container.querySelector('.dropdown-arrow');
+                menu.classList.add('hidden');
+                arrow.classList.remove('dropdown-arrow-rotate');
+                closeAllSubmenus();
+            }
+        });
+
+        function renderProducts() {
+            const grid = document.getElementById('products-grid');
+            const title = document.getElementById('products-title');
+            let html = '';
+            let filteredProducts = [];
+            
+            if (currentFilter === 'featured') {
+                title.textContent = 'Featured Products';
+                // Show only featured products initially (no Nike)
+                filteredProducts = Object.entries(products).filter(([id, product]) => 
+                    ['headphones', 'smartwatch', 'tshirt', 'plant', 'candle'].includes(id)
+                );
+            } else {
+                const [gender, subcategory, brand] = currentFilter.split('-');
+                title.textContent = `${gender.charAt(0).toUpperCase() + gender.slice(1)} > ${subcategory.charAt(0).toUpperCase() + subcategory.slice(1)} > ${brand.charAt(0).toUpperCase() + brand.slice(1)}`;
+                
+                filteredProducts = Object.entries(products).filter(([id, product]) => 
+                    product.gender === gender && product.subcategory === subcategory && product.brand === brand
+                );
+            }
+            
+            filteredProducts.forEach(([id, product]) => {
+                html += `
+                    <div class="bg-white rounded-lg p-5 shadow-lg transform hover:-translate-y-1 transition-transform">
+                        <div class="bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs mb-2 inline-block">${product.category.charAt(0).toUpperCase() + product.category.slice(1)}</div>
+                        <h3 class="text-amazon-blue font-semibold mb-2">${product.name}</h3>
+                        <div class="mb-2">
+                            <div class="text-gray-600 text-sm mb-2">${product.description}</div>
+                            <div class="text-lg font-bold text-amazon-red">$${product.price}</div>
+                            <div class="text-amazon-orange my-1">★★★★☆ ${product.rating}</div>
+                        </div>
+                        <button class="bg-amazon-orange text-black border-none px-5 py-2.5 rounded cursor-pointer font-bold w-full hover:bg-amazon-orange-dark transition-colors" onclick="addToCart('${id}')">Add to Cart</button>
+                    </div>
+                `;
+            });
+            
+            if (html === '') {
+                html = '<div class="text-center py-12 text-gray-600 col-span-full">No products found for this selection.</div>';
+            }
+            
+            grid.innerHTML = html;
+        }
+
+        function filterProducts(gender, subcategory, brand) {
+            currentFilter = `${gender}-${subcategory}-${brand}`;
+            
+            // Close dropdown
+            const container = document.getElementById('dropdown-container');
+            const menu = container.querySelector('.dropdown-menu');
+            const arrow = container.querySelector('.dropdown-arrow');
+            menu.classList.add('hidden');
+            arrow.classList.remove('dropdown-arrow-rotate');
+            closeAllSubmenus();
+            
+            renderProducts();
+        }
+
+        function addToCart(productId) {
+            const existing = cart.find(item => item.id === productId);
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({ id: productId, quantity: 1 });
+            }
+            updateCartCount();
+            alert('Added to cart!');
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartCount();
+            showCart();
+        }
+
+        function updateCartCount() {
+            const count = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cart-count').textContent = count;
+        }
+
+        function showProducts() {
+            document.getElementById('products-page').classList.remove('hidden');
+            document.getElementById('cart-page').classList.add('hidden');
+            document.getElementById('success-page').classList.add('hidden');
+            document.getElementById('products-tab').classList.add('bg-amazon-blue-light');
+            document.getElementById('cart-tab').classList.remove('bg-amazon-blue-light');
+        }
+
+        function showCart() {
+            document.getElementById('products-page').classList.add('hidden');
+            document.getElementById('cart-page').classList.remove('hidden');
+            document.getElementById('success-page').classList.add('hidden');
+            document.getElementById('products-tab').classList.remove('bg-amazon-blue-light');
+            document.getElementById('cart-tab').classList.add('bg-amazon-blue-light');
+            renderCart();
+        }
+
+        function showSuccess() {
+            document.getElementById('products-page').classList.add('hidden');
+            document.getElementById('cart-page').classList.add('hidden');
+            document.getElementById('success-page').classList.remove('hidden');
+            document.getElementById('products-tab').classList.remove('bg-amazon-blue-light');
+            document.getElementById('cart-tab').classList.remove('bg-amazon-blue-light');
+            renderSuccessPage();
+        }
+
+        function renderCart() {
+            const cartItems = document.getElementById('cart-items');
+            const cartSummary = document.getElementById('cart-summary');
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<div class="text-center py-12 text-gray-600">Your cart is empty</div>';
+                cartSummary.innerHTML = '';
+                return;
+            }
+
+            let itemsHtml = '';
+            let total = 0;
+            
+            cart.forEach(item => {
+                const product = products[item.id];
+                const itemTotal = product.price * item.quantity;
+                total += itemTotal;
+                
+                itemsHtml += `
+                    <div class="bg-white p-4 my-2.5 rounded-lg flex justify-between items-center shadow">
+                        <div>
+                            <h3 class="font-semibold text-amazon-blue">${product.name}</h3>
+                            <div class="text-gray-600 text-sm">Category: ${product.category} | Qty: ${item.quantity}</div>
+                            <div class="text-amazon-orange text-sm">Rating: ★ ${product.rating}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-bold text-amazon-red mb-2">$${itemTotal}</div>
+                            <button onclick="removeFromCart('${item.id}')" class="bg-red-600 text-white border-none px-2.5 py-1 rounded cursor-pointer hover:bg-red-700 transition-colors">Remove</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            cartItems.innerHTML = itemsHtml;
+            
+            cartSummary.innerHTML = `
+                <div class="bg-white p-5 rounded-lg mt-5 shadow">
+                    <h2 class="text-xl font-bold text-amazon-blue mb-4">Order Summary</h2>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">Subtotal: <span>$${total}</span></div>
+                        <div class="flex justify-between">Shipping: <span>FREE</span></div>
+                        <hr class="my-2.5">
+                        <div class="flex justify-between font-bold text-lg text-amazon-red">Total: <span>$${total}</span></div>
+                    </div>
+                    <button class="bg-amazon-orange text-black border-none px-7 py-4 rounded cursor-pointer font-bold w-full mt-4 hover:bg-amazon-orange-dark transition-colors" onclick="proceedToCheckout()">Proceed to Checkout</button>
+                </div>
+            `;
+        }
+
+        function proceedToCheckout() {
+            lastOrder.items = [...cart];
+            let total = 0;
+            cart.forEach(item => {
+                const product = products[item.id];
+                total += product.price * item.quantity;
+            });
+            
+            lastOrder.total = total;
+            cart = [];
+            updateCartCount();
+            showSuccess();
+        }
+
+        function renderSuccessPage() {
+            const orderItems = document.getElementById('order-items');
+            const totalPaid = document.getElementById('total-paid');
+            
+            let itemsHtml = '';
+            lastOrder.items.forEach(item => {
+                const product = products[item.id];
+                const itemTotal = product.price * item.quantity;
+                itemsHtml += `
+                    <div class="flex justify-between py-2 border-b border-gray-200">
+                        <span>${product.name} (Qty: ${item.quantity})</span>
+                        <span>$${itemTotal}</span>
+                    </div>
+                `;
+            });
+            
+            orderItems.innerHTML = itemsHtml;
+            totalPaid.textContent = `$${lastOrder.total}`;
+        }
+
+        function continueShopping() {
+            currentFilter = 'featured';
+            showProducts();
+            renderProducts();
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('products-tab').classList.add('bg-amazon-blue-light');
+            renderProducts();
+        });
+    </script>
+</body>
+</html>
