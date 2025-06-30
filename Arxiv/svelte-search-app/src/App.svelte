@@ -12,6 +12,12 @@
     resultsPerPage, 
     includeOlder 
   } from './stores.js';
+  import SearchResults from './SearchResults.svelte';
+  import { writable } from 'svelte/store';
+
+  // New stores for app state
+  const showResults = writable(false);
+  const searchParams = writable({});
 
   // Reactive variables (Svelte will auto-subscribe with $ prefix in template)
 
@@ -57,8 +63,10 @@
     
     // Collect search terms
     const activeTerms = $searchTerms.filter(term => term.term.trim());
+    console.log('Active terms after filtering:', activeTerms);
     if (activeTerms.length > 0) {
       params.set('searchTerms', JSON.stringify(activeTerms));
+      console.log('Set searchTerms param:', JSON.stringify(activeTerms));
     }
     
     // Collect subject filters
@@ -93,13 +101,29 @@
     const params = collectSearchParameters();
     console.log('Search parameters:', params.toString());
     
-    if (params.toString()) {
-      console.log('Navigating to results page...');
-      window.location.href = `./results.html?${params.toString()}`;
-    } else {
-      console.log('No search parameters, showing all results');
-      window.location.href = `./results.html`;
+    // Convert URLSearchParams to object for the results component
+    const paramsObj = {};
+    for (const [key, value] of params) {
+      if (key === 'searchTerms') {
+        try {
+          paramsObj[key] = JSON.parse(value);
+        } catch {
+          paramsObj[key] = value;
+        }
+      } else if (key === 'subjects') {
+        paramsObj[key] = value.split(',');
+      } else {
+        paramsObj[key] = value;
+      }
     }
+    
+    console.log('Setting search params:', paramsObj);
+    searchParams.set(paramsObj);
+    showResults.set(true);
+  }
+
+  function goBackToSearch() {
+    showResults.set(false);
   }
 
   function handleSubmit(event) {
@@ -109,6 +133,7 @@
   }
 </script>
 
+{#if !$showResults}
 <div class="container">
   <h1>Advanced Search - Svelte</h1>
   
@@ -369,3 +394,6 @@
     </div>
   </form>
 </div>
+{:else}
+<SearchResults searchParams={$searchParams} {goBackToSearch} />
+{/if}

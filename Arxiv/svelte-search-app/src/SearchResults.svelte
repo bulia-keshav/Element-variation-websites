@@ -2,8 +2,11 @@
   import { onMount } from 'svelte';
   import { writable } from 'svelte/store';
 
+  // Props
+  export let searchParams = {};
+  export let goBackToSearch = () => {};
+
   // Reactive stores for search results
-  const searchParams = writable({});
   const results = writable([]);
   const loading = writable(false);
   const totalResults = writable(0);
@@ -104,32 +107,16 @@
     }
   ];
 
-  // Parse URL parameters on mount
+  // Parse search parameters from props
   onMount(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const params = {};
+    console.log('SearchResults received props:', searchParams);
     
-    for (const [key, value] of urlParams) {
-      if (key === 'searchTerms') {
-        try {
-          params[key] = JSON.parse(value);
-        } catch {
-          params[key] = value;
-        }
-      } else if (key === 'subjects') {
-        params[key] = value.split(',');
-      } else {
-        params[key] = value;
-      }
-    }
-    
-    searchParams.set(params);
-    showAbstracts.set(params.showAbstracts !== 'hide');
+    showAbstracts.set(searchParams.showAbstracts !== 'hide');
     
     // Simulate loading and filtering results
     loading.set(true);
     setTimeout(() => {
-      const filteredResults = filterResults(mockResults, params);
+      const filteredResults = filterResults(mockResults, searchParams);
       results.set(filteredResults);
       totalResults.set(filteredResults.length);
       loading.set(false);
@@ -142,11 +129,31 @@
     }
   });
 
+  // Update results when searchParams prop changes
+  $: if (searchParams && Object.keys(searchParams).length > 0) {
+    console.log('SearchParams updated:', searchParams);
+    console.log('SearchParams.searchTerms:', searchParams.searchTerms);
+    console.log('Type of searchTerms:', typeof searchParams.searchTerms);
+    loading.set(true);
+    setTimeout(() => {
+      const filteredResults = filterResults(mockResults, searchParams);
+      results.set(filteredResults);
+      totalResults.set(filteredResults.length);
+      loading.set(false);
+    }, 500);
+  }
+
   function filterResults(allResults, params) {
     console.log('Filtering results with params:', params);
     console.log('All results:', allResults.length);
     
     let filtered = [...allResults];
+    
+    // If no search parameters, return empty results
+    if (!params || Object.keys(params).length === 0) {
+      console.log('No search parameters provided, returning empty results');
+      return [];
+    }
     
     // Filter by search terms
     if (params.searchTerms && params.searchTerms.length > 0) {
@@ -199,7 +206,7 @@
             console.log(`All fields match: ${match}`);
             return match;
           }
-          return true;
+          return false;
         });
       });
       
@@ -236,11 +243,7 @@
   }
 
   function goBack() {
-    if (window.history.length > 1) {
-      history.back();
-    } else {
-      window.location.href = './index.html'; // fallback to main search
-    }
+    goBackToSearch();
   }
 
   function formatAuthors(authors) {
@@ -304,22 +307,22 @@
   {:else}
     <div class="results-info">
       <p>Found {$totalResults} results</p>
-      {#if Object.keys($searchParams).length > 0}
+      {#if Object.keys(searchParams).length > 0}
         <div class="search-summary">
           <h3>Search Parameters:</h3>
           <ul>
-            {#if $searchParams.searchTerms}
+            {#if searchParams.searchTerms}
               <li><strong>Search Terms:</strong> 
-                {#each $searchParams.searchTerms as term}
-                  "{term.term}" in {term.field}{#if term !== $searchParams.searchTerms[$searchParams.searchTerms.length - 1]}, {/if}
+                {#each searchParams.searchTerms as term}
+                  "{term.term}" in {term.field}{#if term !== searchParams.searchTerms[searchParams.searchTerms.length - 1]}, {/if}
                 {/each}
               </li>
             {/if}
-            {#if $searchParams.subjects}
-              <li><strong>Subjects:</strong> {$searchParams.subjects.join(', ')}</li>
+            {#if searchParams.subjects}
+              <li><strong>Subjects:</strong> {searchParams.subjects.join(', ')}</li>
             {/if}
-            {#if $searchParams.dateFilter && $searchParams.dateFilter !== 'all'}
-              <li><strong>Date Filter:</strong> {$searchParams.dateFilter}</li>
+            {#if searchParams.dateFilter && searchParams.dateFilter !== 'all'}
+              <li><strong>Date Filter:</strong> {searchParams.dateFilter}</li>
             {/if}
           </ul>
         </div>
