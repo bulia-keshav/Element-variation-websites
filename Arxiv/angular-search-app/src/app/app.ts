@@ -4,6 +4,7 @@ import { ScratchpadComponent } from './scratchpad/scratchpad.component';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [RouterOutlet, ScratchpadComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
