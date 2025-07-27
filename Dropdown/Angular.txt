@@ -1,0 +1,1036 @@
+// This is a summary of all the code related to the Angular dropdown element.
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Dropdown/angular-dropdown-ecommerce/src/app/multi-level-dropdown.component.ts
+// This file contains the two core components for the dropdown and product filtering functionality.
+// 1. MultiLevelDropdownComponent: The reusable, multi-level dropdown UI.
+// 2. ProductFilterComponent: A component that uses the dropdown to filter and display products.
+// ========================================================================
+
+import { Component, EventEmitter, Output, Input, HostListener } from '@angular/core';
+import { CommonModule, TitleCasePipe } from '@angular/common';
+
+// ------------------------------------------------------------------------
+// Component 1: The Multi-Level Dropdown
+// ------------------------------------------------------------------------
+@Component({
+  selector: 'app-multi-level-dropdown',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div class="dropdown-container">
+      <button class="dropdown-btn" (click)="toggleDropdown()">
+        <span>All Products</span>
+        <span class="dropdown-arrow" [class.open]="isOpen">▼</span>
+      </button>
+      
+      <div *ngIf="isOpen" class="dropdown-menu">
+        <!-- Men -->
+        <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'men')">
+          <span>Men</span>
+          <div *ngIf="openSubmenus.has('men')" class="dropdown-submenu">
+            <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'men-shoes')">
+              <span>Shoes</span>
+              <div *ngIf="openSubmenus.has('men-shoes')" class="dropdown-submenu-l3">
+                <div class="dropdown-item" (click)="selectFilter('men', 'shoes', 'nike')">Nike</div>
+                <div class="dropdown-item" (click)="selectFilter('men', 'shoes', 'adidas')">Adidas</div>
+              </div>
+            </div>
+            <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'men-clothing')">
+              <span>Clothing</span>
+              <div *ngIf="openSubmenus.has('men-clothing')" class="dropdown-submenu-l3">
+                <div class="dropdown-item" (click)="selectFilter('men', 'clothing', 'tshirts')">T-Shirts</div>
+                <div class="dropdown-item" (click)="selectFilter('men', 'clothing', 'jeans')">Jeans</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Women -->
+        <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'women')">
+          <span>Women</span>
+          <div *ngIf="openSubmenus.has('women')" class="dropdown-submenu">
+            <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'women-shoes')">
+              <span>Shoes</span>
+              <div *ngIf="openSubmenus.has('women-shoes')" class="dropdown-submenu-l3">
+                <div class="dropdown-item" (click)="selectFilter('women', 'shoes', 'nike')">Nike</div>
+                <div class="dropdown-item" (click)="selectFilter('women', 'shoes', 'adidas')">Adidas</div>
+              </div>
+            </div>
+            <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'women-electronics')">
+              <span>Electronics</span>
+              <div *ngIf="openSubmenus.has('women-electronics')" class="dropdown-submenu-l3">
+                <div class="dropdown-item" (click)="selectFilter('women', 'electronics', 'headphones')">Headphones</div>
+                <div class="dropdown-item" (click)="selectFilter('women', 'electronics', 'smartwatch')">Smartwatch</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Home -->
+        <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'home')">
+          <span>Home</span>
+          <div *ngIf="openSubmenus.has('home')" class="dropdown-submenu">
+            <div class="dropdown-item" (click)="selectFilter('home', 'garden', 'plants')">Plants</div>
+            <div class="dropdown-item" (click)="selectFilter('home', 'decor', 'candles')">Candles</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .dropdown-container {
+      position: relative;
+      display: inline-block;
+      margin: 20px 0;
+    }
+
+    .dropdown-btn {
+      background: #232f3e;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dropdown-btn:hover {
+      background: #37475a;
+    }
+
+    .dropdown-arrow {
+      transition: transform 0.3s;
+    }
+
+    .dropdown-arrow.open {
+      transform: rotate(180deg);
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      min-width: 200px;
+      z-index: 1000;
+    }
+
+    .dropdown-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-item:hover {
+      background: #f8f9fa;
+    }
+
+    .dropdown-item.has-submenu::after {
+      content: "►";
+      color: #666;
+    }
+
+    .dropdown-submenu {
+      position: absolute;
+      left: 100%;
+      top: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      min-width: 180px;
+      z-index: 1001;
+    }
+
+    .dropdown-submenu-l3 {
+      position: absolute;
+      left: 100%;
+      top: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      min-width: 160px;
+      z-index: 1002;
+    }
+  `]
+})
+export class MultiLevelDropdownComponent {
+  @Output() selectionChange = new EventEmitter<{ gender: string, subcategory: string, brand: string }>();
+  
+  isOpen = false;
+  openSubmenus = new Set<string>();
+
+  @HostListener('document:click', ['$event'])
+  clickout(event: Event) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.dropdown-container')) {
+      this.isOpen = false;
+      this.openSubmenus.clear();
+    }
+  }
+
+  toggleDropdown() {
+    this.isOpen = !this.isOpen;
+    if (!this.isOpen) {
+      this.openSubmenus.clear();
+    }
+  }
+
+  toggleSubmenu(event: MouseEvent, menuId: string) {
+    event.stopPropagation();
+    
+    if (this.openSubmenus.has(menuId)) {
+      this.openSubmenus.delete(menuId);
+    } else {
+      const parts = menuId.split('-');
+      const level = parts.length;
+      const prefix = parts.slice(0, -1).join('-');
+
+      const toDelete: string[] = [];
+      this.openSubmenus.forEach(submenu => {
+        const submenuParts = submenu.split('-');
+        if (submenuParts.length >= level && (level === 1 || submenu.startsWith(prefix + '-'))) {
+          toDelete.push(submenu);
+        }
+      });
+      toDelete.forEach(key => this.openSubmenus.delete(key));
+      
+      this.openSubmenus.add(menuId);
+    }
+  }
+
+  selectFilter(gender: string, subcategory: string, brand: string) {
+    this.selectionChange.emit({ gender, subcategory, brand });
+    this.isOpen = false;
+    this.openSubmenus.clear();
+  }
+}
+
+
+// ------------------------------------------------------------------------
+// Component 2: The Product Filter Page
+// This component contains the product data, uses the dropdown, and displays
+// the filtered results.
+// ------------------------------------------------------------------------
+@Component({
+  selector: 'app-product-filter',
+  standalone: true,
+  imports: [CommonModule, MultiLevelDropdownComponent, TitleCasePipe],
+  template: `
+    <div>
+      <h1>Shop Our Products</h1>
+      
+      <app-multi-level-dropdown 
+        (selectionChange)="onFilterChange($event)">
+      </app-multi-level-dropdown>
+
+      <div class="products-section">
+        <h2>{{ productsTitle }}</h2>
+        <div class="products-grid">
+          <div *ngFor="let product of filteredProducts" class="product">
+            <div class="category-tag">{{ product.category | titlecase }}</div>
+            <h3>{{ product.name }}</h3>
+            <div class="product-info">
+              <div>{{ product.description }}</div>
+              <div class="price">\${{ product.price }}</div>
+              <div class="rating">★★★★☆ {{ product.rating }}</div>
+            </div>
+            <button class="add-btn" (click)="addToCart(product)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .products-section h2 {
+      margin: 30px 0 20px 0;
+      color: #232f3e;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .product {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .product:hover {
+      transform: translateY(-2px);
+    }
+
+    .product h3 {
+      color: #232f3e;
+      margin-bottom: 10px;
+    }
+
+    .product-info {
+      margin: 10px 0;
+    }
+
+    .category-tag {
+      background: #e8f4f8;
+      color: #232f3e;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+
+    .price {
+      font-size: 20px;
+      font-weight: bold;
+      color: #b12704;
+      margin: 10px 0;
+    }
+
+    .rating {
+      color: #ff9900;
+    }
+
+    .add-btn {
+      background: #ff9900;
+      color: black;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .add-btn:hover {
+      background: #e68900;
+    }
+  `]
+})
+export class ProductFilterComponent {
+  @Output() cartUpdate = new EventEmitter<any>();
+
+  productsTitle = 'Featured Products';
+  filteredProducts: any[] = [];
+  
+  allProducts = {
+    headphones: { name: 'Wireless Headphones', price: 89, rating: '4.2', category: 'electronics', description: 'Bluetooth noise-canceling headphones', gender: 'women', subcategory: 'electronics', brand: 'headphones' },
+    smartwatch: { name: 'Smart Fitness Watch', price: 199, rating: '4.4', category: 'electronics', description: 'Track your fitness and health metrics', gender: 'women', subcategory: 'electronics', brand: 'smartwatch' },
+    tshirt: { name: 'Cotton T-Shirt', price: 25, rating: '4.0', category: 'clothing', description: 'Comfortable 100% cotton t-shirt', gender: 'men', subcategory: 'clothing', brand: 'tshirts' },
+    plant: { name: 'Indoor Plant Set', price: 45, rating: '4.5', category: 'home', description: 'Set of 3 air-purifying plants', gender: 'home', subcategory: 'garden', brand: 'plants' },
+    candle: { name: 'Scented Candles Pack', price: 32, rating: '4.2', category: 'home', description: 'Pack of 4 aromatherapy candles', gender: 'home', subcategory: 'decor', brand: 'candles' },
+    nike_air_max_90: { name: 'Nike Air Max 90', price: 110, rating: '4.6', category: 'shoes', description: 'Classic Air Max with visible air cushioning', gender: 'men', subcategory: 'shoes', brand: 'nike' },
+    adidas_ultraboost: { name: 'Adidas Ultraboost', price: 180, rating: '4.7', category: 'shoes', description: 'Premium running shoes with boost technology', gender: 'men', subcategory: 'shoes', brand: 'adidas' },
+    nike_womens_running: { name: 'Nike Womens Running', price: 120, rating: '4.5', category: 'shoes', description: 'Lightweight running shoes for women', gender: 'women', subcategory: 'shoes', brand: 'nike' },
+    adidas_womens_sneaker: { name: 'Adidas Womens Sneaker', price: 90, rating: '4.3', category: 'shoes', description: 'Stylish and comfortable sneakers', gender: 'women', subcategory: 'shoes', brand: 'adidas' },
+    jeans_levis: { name: 'Levis 501 Jeans', price: 80, rating: '4.8', category: 'clothing', description: 'Classic straight-fit jeans', gender: 'men', subcategory: 'clothing', brand: 'jeans' },
+  };
+
+  constructor() {
+    this.showFeatured();
+  }
+
+  showFeatured() {
+    this.productsTitle = 'Featured Products';
+    this.filteredProducts = Object.values(this.allProducts).slice(0, 5);
+  }
+
+  onFilterChange(filter: { gender: string, subcategory: string, brand: string }) {
+    this.productsTitle = `${filter.gender} > ${filter.subcategory} > ${filter.brand}`;
+    this.filteredProducts = Object.values(this.allProducts).filter(p => 
+      p.gender === filter.gender && 
+      p.subcategory === filter.subcategory && 
+      p.brand === filter.brand
+    );
+  }
+
+  addToCart(product: any) {
+    this.cartUpdate.emit(product);
+  }
+}
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Dropdown/angular-dropdown-ecommerce/src/app/app.component.ts
+// This is the root component of the application. It manages the current page
+// (products, cart, success) and uses the <app-product-filter> component on the products page.
+// ========================================================================
+
+// app.component.ts
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MultiLevelDropdownComponent, ProductFilterComponent } from './multi-level-dropdown.component';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule, MultiLevelDropdownComponent, ProductFilterComponent],
+  template: `
+    <div class="header">
+      <div class="logo">SimpleZon</div>
+      <div class="nav">
+        <a href="#" 
+           (click)="showProducts($event)" 
+           [class.active]="currentPage === 'products'">
+          Products
+        </a>
+        <a href="#" 
+           (click)="showCart($event)" 
+           [class.active]="currentPage === 'cart'">
+          Cart 
+          <span class="cart-count">{{ cartCount }}</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Products Page -->
+      <div *ngIf="currentPage === 'products'" id="products-page">
+        <app-product-filter 
+          (cartUpdate)="onCartUpdate($event)">
+        </app-product-filter>
+      </div>
+
+      <!-- Cart Page -->
+      <div *ngIf="currentPage === 'cart'" class="cart-page">
+        <!-- ... cart logic and template ... -->
+      </div>
+
+      <!-- Success Page -->
+      <div *ngIf="currentPage === 'success'" class="success-page">
+        <!-- ... success page logic and template ... -->
+      </div>
+    </div>
+  `,
+  styles: [`
+    /* Global Styles */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    .header {
+      background: #232f3e;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .nav {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .nav a {
+      color: white;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .nav a:hover,
+    .nav a.active {
+      background: #37475a;
+    }
+    
+    .cart-count {
+      background: #ff9900;
+      color: black;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    
+    /* ... other styles for cart and success pages ... */
+  `]
+})
+export class AppComponent {
+  currentPage: 'products' | 'cart' | 'success' = 'products';
+  cart: any[] = [];
+  lastOrder: { items: any[], total: number } = { items: [], total: 0 };
+
+  get cartCount(): number {
+    return this.cart.reduce((sum, item) => sum + item.quantity, 0);
+  }
+
+  // ... other methods for cart and page navigation ...
+
+  showProducts(event: Event): void {
+    event.preventDefault();
+    this.currentPage = 'products';
+  }
+
+  showCart(event: Event): void {
+    event.preventDefault();
+    this.currentPage = 'cart';
+  }
+
+  onCartUpdate(cartData: any): void {
+    const existingItem = this.cart.find(item => item.id === cartData.id);
+    
+    if (existingItem) {
+      existingItem.quantity++;
+    } else {
+      this.cart.push({
+        id: cartData.id,
+        name: cartData.name,
+        price: cartData.price,
+        category: cartData.category,
+        rating: cartData.rating,
+        quantity: 1
+      });
+    }
+  }
+}
+```// This is a summary of all the code related to the Angular dropdown element.
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Dropdown/angular-dropdown-ecommerce/src/app/multi-level-dropdown.component.ts
+// This file contains the two core components for the dropdown and product filtering functionality.
+// 1. MultiLevelDropdownComponent: The reusable, multi-level dropdown UI.
+// 2. ProductFilterComponent: A component that uses the dropdown to filter and display products.
+// ========================================================================
+
+import { Component, EventEmitter, Output, Input, HostListener } from '@angular/core';
+import { CommonModule, TitleCasePipe } from '@angular/common';
+
+// ------------------------------------------------------------------------
+// Component 1: The Multi-Level Dropdown
+// ------------------------------------------------------------------------
+@Component({
+  selector: 'app-multi-level-dropdown',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div class="dropdown-container">
+      <button class="dropdown-btn" (click)="toggleDropdown()">
+        <span>All Products</span>
+        <span class="dropdown-arrow" [class.open]="isOpen">▼</span>
+      </button>
+      
+      <div *ngIf="isOpen" class="dropdown-menu">
+        <!-- Men -->
+        <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'men')">
+          <span>Men</span>
+          <div *ngIf="openSubmenus.has('men')" class="dropdown-submenu">
+            <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'men-shoes')">
+              <span>Shoes</span>
+              <div *ngIf="openSubmenus.has('men-shoes')" class="dropdown-submenu-l3">
+                <div class="dropdown-item" (click)="selectFilter('men', 'shoes', 'nike')">Nike</div>
+                <div class="dropdown-item" (click)="selectFilter('men', 'shoes', 'adidas')">Adidas</div>
+              </div>
+            </div>
+            <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'men-clothing')">
+              <span>Clothing</span>
+              <div *ngIf="openSubmenus.has('men-clothing')" class="dropdown-submenu-l3">
+                <div class="dropdown-item" (click)="selectFilter('men', 'clothing', 'tshirts')">T-Shirts</div>
+                <div class="dropdown-item" (click)="selectFilter('men', 'clothing', 'jeans')">Jeans</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Women -->
+        <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'women')">
+          <span>Women</span>
+          <div *ngIf="openSubmenus.has('women')" class="dropdown-submenu">
+            <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'women-shoes')">
+              <span>Shoes</span>
+              <div *ngIf="openSubmenus.has('women-shoes')" class="dropdown-submenu-l3">
+                <div class="dropdown-item" (click)="selectFilter('women', 'shoes', 'nike')">Nike</div>
+                <div class="dropdown-item" (click)="selectFilter('women', 'shoes', 'adidas')">Adidas</div>
+              </div>
+            </div>
+            <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'women-electronics')">
+              <span>Electronics</span>
+              <div *ngIf="openSubmenus.has('women-electronics')" class="dropdown-submenu-l3">
+                <div class="dropdown-item" (click)="selectFilter('women', 'electronics', 'headphones')">Headphones</div>
+                <div class="dropdown-item" (click)="selectFilter('women', 'electronics', 'smartwatch')">Smartwatch</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Home -->
+        <div class="dropdown-item has-submenu" (click)="toggleSubmenu($event, 'home')">
+          <span>Home</span>
+          <div *ngIf="openSubmenus.has('home')" class="dropdown-submenu">
+            <div class="dropdown-item" (click)="selectFilter('home', 'garden', 'plants')">Plants</div>
+            <div class="dropdown-item" (click)="selectFilter('home', 'decor', 'candles')">Candles</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .dropdown-container {
+      position: relative;
+      display: inline-block;
+      margin: 20px 0;
+    }
+
+    .dropdown-btn {
+      background: #232f3e;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dropdown-btn:hover {
+      background: #37475a;
+    }
+
+    .dropdown-arrow {
+      transition: transform 0.3s;
+    }
+
+    .dropdown-arrow.open {
+      transform: rotate(180deg);
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      min-width: 200px;
+      z-index: 1000;
+    }
+
+    .dropdown-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+    }
+
+    .dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-item:hover {
+      background: #f8f9fa;
+    }
+
+    .dropdown-item.has-submenu::after {
+      content: "►";
+      color: #666;
+    }
+
+    .dropdown-submenu {
+      position: absolute;
+      left: 100%;
+      top: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      min-width: 180px;
+      z-index: 1001;
+    }
+
+    .dropdown-submenu-l3 {
+      position: absolute;
+      left: 100%;
+      top: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      min-width: 160px;
+      z-index: 1002;
+    }
+  `]
+})
+export class MultiLevelDropdownComponent {
+  @Output() selectionChange = new EventEmitter<{ gender: string, subcategory: string, brand: string }>();
+  
+  isOpen = false;
+  openSubmenus = new Set<string>();
+
+  @HostListener('document:click', ['$event'])
+  clickout(event: Event) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.dropdown-container')) {
+      this.isOpen = false;
+      this.openSubmenus.clear();
+    }
+  }
+
+  toggleDropdown() {
+    this.isOpen = !this.isOpen;
+    if (!this.isOpen) {
+      this.openSubmenus.clear();
+    }
+  }
+
+  toggleSubmenu(event: MouseEvent, menuId: string) {
+    event.stopPropagation();
+    
+    if (this.openSubmenus.has(menuId)) {
+      this.openSubmenus.delete(menuId);
+    } else {
+      const parts = menuId.split('-');
+      const level = parts.length;
+      const prefix = parts.slice(0, -1).join('-');
+
+      const toDelete: string[] = [];
+      this.openSubmenus.forEach(submenu => {
+        const submenuParts = submenu.split('-');
+        if (submenuParts.length >= level && (level === 1 || submenu.startsWith(prefix + '-'))) {
+          toDelete.push(submenu);
+        }
+      });
+      toDelete.forEach(key => this.openSubmenus.delete(key));
+      
+      this.openSubmenus.add(menuId);
+    }
+  }
+
+  selectFilter(gender: string, subcategory: string, brand: string) {
+    this.selectionChange.emit({ gender, subcategory, brand });
+    this.isOpen = false;
+    this.openSubmenus.clear();
+  }
+}
+
+
+// ------------------------------------------------------------------------
+// Component 2: The Product Filter Page
+// This component contains the product data, uses the dropdown, and displays
+// the filtered results.
+// ------------------------------------------------------------------------
+@Component({
+  selector: 'app-product-filter',
+  standalone: true,
+  imports: [CommonModule, MultiLevelDropdownComponent, TitleCasePipe],
+  template: `
+    <div>
+      <h1>Shop Our Products</h1>
+      
+      <app-multi-level-dropdown 
+        (selectionChange)="onFilterChange($event)">
+      </app-multi-level-dropdown>
+
+      <div class="products-section">
+        <h2>{{ productsTitle }}</h2>
+        <div class="products-grid">
+          <div *ngFor="let product of filteredProducts" class="product">
+            <div class="category-tag">{{ product.category | titlecase }}</div>
+            <h3>{{ product.name }}</h3>
+            <div class="product-info">
+              <div>{{ product.description }}</div>
+              <div class="price">\${{ product.price }}</div>
+              <div class="rating">★★★★☆ {{ product.rating }}</div>
+            </div>
+            <button class="add-btn" (click)="addToCart(product)">Add to Cart</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .products-section h2 {
+      margin: 30px 0 20px 0;
+      color: #232f3e;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .product {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+
+    .product:hover {
+      transform: translateY(-2px);
+    }
+
+    .product h3 {
+      color: #232f3e;
+      margin-bottom: 10px;
+    }
+
+    .product-info {
+      margin: 10px 0;
+    }
+
+    .category-tag {
+      background: #e8f4f8;
+      color: #232f3e;
+      padding: 4px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+
+    .price {
+      font-size: 20px;
+      font-weight: bold;
+      color: #b12704;
+      margin: 10px 0;
+    }
+
+    .rating {
+      color: #ff9900;
+    }
+
+    .add-btn {
+      background: #ff9900;
+      color: black;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .add-btn:hover {
+      background: #e68900;
+    }
+  `]
+})
+export class ProductFilterComponent {
+  @Output() cartUpdate = new EventEmitter<any>();
+
+  productsTitle = 'Featured Products';
+  filteredProducts: any[] = [];
+  
+  allProducts = {
+    headphones: { name: 'Wireless Headphones', price: 89, rating: '4.2', category: 'electronics', description: 'Bluetooth noise-canceling headphones', gender: 'women', subcategory: 'electronics', brand: 'headphones' },
+    smartwatch: { name: 'Smart Fitness Watch', price: 199, rating: '4.4', category: 'electronics', description: 'Track your fitness and health metrics', gender: 'women', subcategory: 'electronics', brand: 'smartwatch' },
+    tshirt: { name: 'Cotton T-Shirt', price: 25, rating: '4.0', category: 'clothing', description: 'Comfortable 100% cotton t-shirt', gender: 'men', subcategory: 'clothing', brand: 'tshirts' },
+    plant: { name: 'Indoor Plant Set', price: 45, rating: '4.5', category: 'home', description: 'Set of 3 air-purifying plants', gender: 'home', subcategory: 'garden', brand: 'plants' },
+    candle: { name: 'Scented Candles Pack', price: 32, rating: '4.2', category: 'home', description: 'Pack of 4 aromatherapy candles', gender: 'home', subcategory: 'decor', brand: 'candles' },
+    nike_air_max_90: { name: 'Nike Air Max 90', price: 110, rating: '4.6', category: 'shoes', description: 'Classic Air Max with visible air cushioning', gender: 'men', subcategory: 'shoes', brand: 'nike' },
+    adidas_ultraboost: { name: 'Adidas Ultraboost', price: 180, rating: '4.7', category: 'shoes', description: 'Premium running shoes with boost technology', gender: 'men', subcategory: 'shoes', brand: 'adidas' },
+    nike_womens_running: { name: 'Nike Womens Running', price: 120, rating: '4.5', category: 'shoes', description: 'Lightweight running shoes for women', gender: 'women', subcategory: 'shoes', brand: 'nike' },
+    adidas_womens_sneaker: { name: 'Adidas Womens Sneaker', price: 90, rating: '4.3', category: 'shoes', description: 'Stylish and comfortable sneakers', gender: 'women', subcategory: 'shoes', brand: 'adidas' },
+    jeans_levis: { name: 'Levis 501 Jeans', price: 80, rating: '4.8', category: 'clothing', description: 'Classic straight-fit jeans', gender: 'men', subcategory: 'clothing', brand: 'jeans' },
+  };
+
+  constructor() {
+    this.showFeatured();
+  }
+
+  showFeatured() {
+    this.productsTitle = 'Featured Products';
+    this.filteredProducts = Object.values(this.allProducts).slice(0, 5);
+  }
+
+  onFilterChange(filter: { gender: string, subcategory: string, brand: string }) {
+    this.productsTitle = `${filter.gender} > ${filter.subcategory} > ${filter.brand}`;
+    this.filteredProducts = Object.values(this.allProducts).filter(p => 
+      p.gender === filter.gender && 
+      p.subcategory === filter.subcategory && 
+      p.brand === filter.brand
+    );
+  }
+
+  addToCart(product: any) {
+    this.cartUpdate.emit(product);
+  }
+}
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Dropdown/angular-dropdown-ecommerce/src/app/app.component.ts
+// This is the root component of the application. It manages the current page
+// (products, cart, success) and uses the <app-product-filter> component on the products page.
+// ========================================================================
+
+// app.component.ts
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MultiLevelDropdownComponent, ProductFilterComponent } from './multi-level-dropdown.component';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [CommonModule, MultiLevelDropdownComponent, ProductFilterComponent],
+  template: `
+    <div class="header">
+      <div class="logo">SimpleZon</div>
+      <div class="nav">
+        <a href="#" 
+           (click)="showProducts($event)" 
+           [class.active]="currentPage === 'products'">
+          Products
+        </a>
+        <a href="#" 
+           (click)="showCart($event)" 
+           [class.active]="currentPage === 'cart'">
+          Cart 
+          <span class="cart-count">{{ cartCount }}</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Products Page -->
+      <div *ngIf="currentPage === 'products'" id="products-page">
+        <app-product-filter 
+          (cartUpdate)="onCartUpdate($event)">
+        </app-product-filter>
+      </div>
+
+      <!-- Cart Page -->
+      <div *ngIf="currentPage === 'cart'" class="cart-page">
+        <!-- ... cart logic and template ... -->
+      </div>
+
+      <!-- Success Page -->
+      <div *ngIf="currentPage === 'success'" class="success-page">
+        <!-- ... success page logic and template ... -->
+      </div>
+    </div>
+  `,
+  styles: [`
+    /* Global Styles */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    .header {
+      background: #232f3e;
+      color: white;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .nav {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .nav a {
+      color: white;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .nav a:hover,
+    .nav a.active {
+      background: #37475a;
+    }
+    
+    .cart-count {
+      background: #ff9900;
+      color: black;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
+    }
+    
+    /* ... other styles for cart and success pages ... */
+  `]
+})
+export class AppComponent {
+  currentPage: 'products' | 'cart' | 'success' = 'products';
+  cart: any[] = [];
+  lastOrder: { items: any[], total: number } = { items: [], total: 0 };
+
+  get cartCount(): number {
+    return this.cart.reduce((sum, item) => sum + item.quantity, 0);
+  }
+
+  // ... other methods for cart and page navigation ...
+
+  showProducts(event: Event): void {
+    event.preventDefault();
+    this.currentPage = 'products';
+  }
+
+  showCart(event: Event): void {
+    event.preventDefault();
+    this.currentPage = 'cart';
+  }
+
+  onCartUpdate(cartData: any): void {
+    const existingItem = this.cart.find(item => item.id === cartData.id);
+    
+    if (existingItem) {
+      existingItem.quantity++;
+    } else {
+      this.cart.push({
+        id: cartData.id,
+        name: cartData.name,
+        price: cartData.price,
+        category: cartData.category,
+        rating: cartData.rating,
+        quantity: 1
+      });
+    }
+  }
+}

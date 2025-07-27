@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleZon - Shop Online (Instrumented)</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .header { background: #232f3e; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 24px; font-weight: bold; }
+        .nav { display: flex; gap: 20px; }
+        .nav a { color: white; text-decoration: none; padding: 8px 12px; border-radius: 4px; }
+        .nav a:hover, .nav a.active { background: #37475a; }
+        .cart-count { background: #ff9900; color: black; border-radius: 50%; padding: 2px 6px; font-size: 12px; margin-left: 5px; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        .dropdown-container { position: relative; display: inline-block; margin: 20px 0; }
+        .dropdown-trigger { background: #232f3e; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+        .dropdown-trigger:hover { background: #37475a; }
+        .dropdown-arrow { transition: transform 0.3s; }
+        .dropdown-container.open .dropdown-arrow { transform: rotate(180deg); }
+        .dropdown-menu { position: absolute; top: 100%; left: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 200px; z-index: 1000; display: none; }
+        .dropdown-container.open .dropdown-menu { display: block; }
+        .dropdown-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center; position: relative; }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { background: #f8f9fa; }
+        .dropdown-item.has-submenu::after { content: "►"; color: #666; }
+        .dropdown-item.open { background: #f8f9fa; }
+        .dropdown-submenu { position: absolute; left: 100%; top: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 180px; display: none; }
+        .dropdown-item.open .dropdown-submenu { display: block; }
+        .dropdown-submenu-l3 { position: absolute; left: 100%; top: 0; background: white; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); min-width: 160px; display: none; }
+        .dropdown-item.open > .dropdown-submenu-l3 { display: block; }
+        .products-section h2 { margin: 30px 0 20px 0; color: #232f3e; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .product { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .product:hover { transform: translateY(-2px); }
+        .product h3 { color: #232f3e; margin-bottom: 10px; }
+        .product-info { margin: 10px 0; }
+        .category-tag { background: #e8f4f8; color: #007185; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-bottom: 8px; display: inline-block; }
+        .price { font-size: 18px; font-weight: bold; color: #b12704; }
+        .rating { color: #ff9900; margin: 5px 0; }
+        .add-btn { background: #ff9900; color: black; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+        .add-btn:hover { background: #e68900; }
+        .cart-page { display: none; }
+        .cart-item { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .cart-summary { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .checkout-btn { background: #ff9900; color: black; border: none; padding: 15px 30px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; }
+        .empty-cart { text-align: center; padding: 50px; color: #666; }
+        .success-page { display: none; }
+        .success-container { text-align: center; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .success-icon { font-size: 60px; color: #28a745; margin-bottom: 20px; }
+        .success-title { font-size: 32px; color: #232f3e; margin-bottom: 10px; }
+        .success-subtitle { color: #666; margin-bottom: 30px; }
+        .order-summary { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: left; }
+        .order-item { display: flex; justify-content: space-between; margin: 10px 0; padding: 5px 0; }
+        .order-item:not(:last-child) { border-bottom: 1px solid #dee2e6; }
+        .continue-btn { background: #232f3e; color: white; border: none; padding: 15px 30px; border-radius: 4px; cursor: pointer; font-weight: bold; margin-top: 20px; }
+        .continue-btn:hover { background: #37475a; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">SimpleZon</div>
+        <div class="nav">
+            <a href="#" onclick="showProducts()" class="active" id="products-tab">Products</a>
+            <a href="#" onclick="showCart()" id="cart-tab">Cart <span class="cart-count" id="cart-count">0</span></a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="products-page">
+            <h1>Shop Our Products</h1>
+            <div class="dropdown-container" id="dropdown-container">
+                <button class="dropdown-trigger" onclick="toggleDropdown()">
+                    <span>All Products</span>
+                    <span class="dropdown-arrow">▼</span>
+                </button>
+                <div class="dropdown-menu">
+                    <div class="dropdown-item has-submenu" onclick="toggleSubmenu(event, this)">
+                        <span>Men</span>
+                        <div class="dropdown-submenu">
+                            <div class="dropdown-item has-submenu" onclick="toggleSubmenu(event, this)">
+                                <span>Shoes</span>
+                                <div class="dropdown-submenu-l3">
+                                    <div class="dropdown-item" onclick="filterProducts('men', 'shoes', 'nike')">Nike</div>
+                                    <div class="dropdown-item" onclick="filterProducts('men', 'shoes', 'adidas')">Adidas</div>
+                                </div>
+                            </div>
+                            <div class="dropdown-item has-submenu" onclick="toggleSubmenu(event, this)">
+                                <span>Clothing</span>
+                                <div class="dropdown-submenu-l3">
+                                    <div class="dropdown-item" onclick="filterProducts('men', 'clothing', 'tshirts')">T-Shirts</div>
+                                    <div class="dropdown-item" onclick="filterProducts('men', 'clothing', 'jeans')">Jeans</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown-item has-submenu" onclick="toggleSubmenu(event, this)">
+                        <span>Women</span>
+                        <div class="dropdown-submenu">
+                            <div class="dropdown-item has-submenu" onclick="toggleSubmenu(event, this)">
+                                <span>Shoes</span>
+                                <div class="dropdown-submenu-l3">
+                                    <div class="dropdown-item" onclick="filterProducts('women', 'shoes', 'nike')">Nike</div>
+                                    <div class="dropdown-item" onclick="filterProducts('women', 'shoes', 'adidas')">Adidas</div>
+                                </div>
+                            </div>
+                            <div class="dropdown-item has-submenu" onclick="toggleSubmenu(event, this)">
+                                <span>Electronics</span>
+                                <div class="dropdown-submenu-l3">
+                                    <div class="dropdown-item" onclick="filterProducts('women', 'electronics', 'headphones')">Headphones</div>
+                                    <div class="dropdown-item" onclick="filterProducts('women', 'electronics', 'smartwatch')">Smartwatch</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dropdown-item has-submenu" onclick="toggleSubmenu(event, this)">
+                        <span>Home</span>
+                        <div class="dropdown-submenu">
+                            <div class="dropdown-item" onclick="filterProducts('home', 'garden', 'plants')">Plants</div>
+                            <div class="dropdown-item" onclick="filterProducts('home', 'decor', 'candles')">Candles</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="products-section">
+                <h2 id="products-title">Featured Products</h2>
+                <div class="products-grid" id="products-grid"></div>
+            </div>
+        </div>
+        <div id="cart-page" class="cart-page">
+            <h1>Shopping Cart</h1>
+            <div id="cart-items"></div>
+            <div id="cart-summary"></div>
+        </div>
+        <div id="success-page" class="success-page">
+            <div class="success-container">
+                <div class="success-icon">✅</div>
+                <h1 class="success-title">Congratulations!</h1>
+                <p class="success-subtitle">Your order has been placed successfully</p>
+                <div class="order-summary">
+                    <h3 style="margin-bottom: 15px; color: #232f3e;">Order Summary</h3>
+                    <div id="order-items"></div>
+                    <div class="order-item" style="font-weight: bold; font-size: 18px; color: #b12704;">
+                        <span>Total Paid:</span>
+                        <span id="total-paid"></span>
+                    </div>
+                </div>
+                <button class="continue-btn" onclick="continueShopping()">Continue Shopping</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- LOGGING CODE START ---
+        window.agentRunLogs = [];
+
+        function logWebsiteEvent(logData) {
+            const logEntry = {
+                timestamp: new Date().toISOString(),
+                source: 'Website Event',
+                ...logData
+            };
+            window.agentRunLogs.push(logEntry);
+            console.log('Logged Event:', logEntry);
+        }
+
+        function uploadLogs() {
+            console.log("Attempting to upload logs to Google Sheet...");
+            console.log("Current logs:", window.agentRunLogs);
+
+            const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyCliQ9PEsEAFN02HxzO8VRKH-Cgpe6r90tnDEru9X2TgFgmkAuWYIpBZDmoU1Yk7Ci/exec";
+
+            if (window.agentRunLogs.length === 0) {
+                console.log("No logs to upload");
+                return;
+            }
+
+            // JSONP approach - this bypasses CORS completely
+            const script = document.createElement('script');
+            const callbackName = 'logCallback' + Date.now();
+            
+            // Create global callback function
+            window[callbackName] = function(response) {
+                console.log('✅ UPLOAD SUCCESSFUL!', response);
+                document.head.removeChild(script);
+                delete window[callbackName];
+                window.agentRunLogs = []; // Clear logs after successful upload
+            };
+            
+            // Encode the data for URL
+            const encodedData = encodeURIComponent(JSON.stringify(window.agentRunLogs));
+            
+            // Create the JSONP URL
+            script.src = `${WEB_APP_URL}?callback=${callbackName}&data=${encodedData}`;
+            
+            script.onerror = function() {
+                console.error('❌ JSONP request failed');
+                document.head.removeChild(script);
+                delete window[callbackName];
+            };
+            
+            script.onload = function() {
+                console.log('📡 JSONP script loaded successfully');
+            };
+            
+            // Add script to head to trigger the request
+            document.head.appendChild(script);
+            
+            console.log('🚀 JSONP request sent!');
+        }
+        // --- LOGGING CODE END ---
+
+        let cart = [];
+        let lastOrder = { items: [], total: 0 };
+        let currentFilter = 'featured';
+        const products = {
+            headphones: { name: 'Wireless Headphones', price: 89, rating: '4.2', category: 'electronics', gender: 'women', subcategory: 'electronics', brand: 'headphones' },
+            smartwatch: { name: 'Smart Fitness Watch', price: 199, rating: '4.4', category: 'electronics', gender: 'women', subcategory: 'electronics', brand: 'smartwatch' },
+            tshirt: { name: 'Cotton T-Shirt', price: 25, rating: '4.0', category: 'clothing', gender: 'men', subcategory: 'clothing', brand: 'tshirts' },
+            plant: { name: 'Indoor Plant Set', price: 45, rating: '4.5', category: 'home', gender: 'home', subcategory: 'garden', brand: 'plants' },
+            candle: { name: 'Scented Candles Pack', price: 32, rating: '4.2', category: 'home', gender: 'home', subcategory: 'decor', brand: 'candles' },
+            nike_air_max_90: { name: 'Nike Air Max 90', price: 110, rating: '4.6', category: 'shoes', gender: 'men', subcategory: 'shoes', brand: 'nike' },
+            nike_air_max_pro: { name: 'Nike Air Max Pro', price: 95, rating: '4.5', category: 'shoes', gender: 'men', subcategory: 'shoes', brand: 'nike' },
+            nike_air_max_270: { name: 'Nike Air Max 270', price: 130, rating: '4.7', category: 'shoes', gender: 'men', subcategory: 'shoes', brand: 'nike' },
+            nike_women_air_max: { name: 'Nike Women Air Max', price: 105, rating: '4.4', category: 'shoes', gender: 'women', subcategory: 'shoes', brand: 'nike' },
+            adidas_ultraboost: { name: 'Adidas Ultraboost', price: 180, rating: '4.7', category: 'shoes', gender: 'men', subcategory: 'shoes', brand: 'adidas' },
+            adidas_women: { name: 'Adidas Women Sneakers', price: 140, rating: '4.3', category: 'shoes', gender: 'women', subcategory: 'shoes', brand: 'adidas' },
+            jeans: { name: 'Denim Jeans', price: 65, rating: '4.3', category: 'clothing', gender: 'men', subcategory: 'clothing', brand: 'jeans' }
+        };
+
+        function toggleDropdown() {
+            logWebsiteEvent({ step_id: 'S1_Open_Dropdown', action: 'CLICK', target_element: '.dropdown-trigger' });
+            const container = document.getElementById('dropdown-container');
+            container.classList.toggle('open');
+            if (!container.classList.contains('open')) {
+                closeAllSubmenus();
+            }
+        }
+
+        function toggleSubmenu(event, element) {
+            const itemName = element.querySelector('span').textContent;
+            logWebsiteEvent({ step_id: `S_Click_${itemName}`, action: 'CLICK', target_element: `item: ${itemName}` });
+            event.stopPropagation();
+            const parent = element.parentElement;
+            const siblings = parent.querySelectorAll('.dropdown-item.has-submenu');
+            siblings.forEach(sibling => {
+                if (sibling !== element) {
+                    sibling.classList.remove('open');
+                    const nestedSubmenus = sibling.querySelectorAll('.dropdown-submenu, .dropdown-submenu-l3');
+                    nestedSubmenus.forEach(nested => nested.parentElement.classList.remove('open'));
+                }
+            });
+            element.classList.toggle('open');
+        }
+
+        function closeAllSubmenus() {
+            document.querySelectorAll('.dropdown-item.has-submenu').forEach(submenu => submenu.classList.remove('open'));
+        }
+
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('dropdown-container');
+            if (!container.contains(event.target)) {
+                container.classList.remove('open');
+                closeAllSubmenus();
+            }
+        });
+
+        function renderProducts() {
+            const grid = document.getElementById('products-grid');
+            const title = document.getElementById('products-title');
+            let html = '';
+            let filteredProducts;
+            if (currentFilter === 'featured') {
+                title.textContent = 'Featured Products';
+                filteredProducts = Object.entries(products).filter(([id]) => ['headphones', 'smartwatch', 'tshirt', 'plant', 'candle'].includes(id));
+            } else {
+                const [gender, subcategory, brand] = currentFilter.split('-');
+                title.textContent = `${gender.charAt(0).toUpperCase() + gender.slice(1)} > ${subcategory.charAt(0).toUpperCase() + subcategory.slice(1)} > ${brand.charAt(0).toUpperCase() + brand.slice(1)}`;
+                filteredProducts = Object.entries(products).filter(([, p]) => p.gender === gender && p.subcategory === subcategory && p.brand === brand);
+            }
+            filteredProducts.forEach(([id, p]) => {
+                html += `
+                    <div class="product">
+                        <div class="category-tag">${p.category.charAt(0).toUpperCase() + p.category.slice(1)}</div>
+                        <h3>${p.name}</h3>
+                        <div class="product-info">
+                            <div>${p.description}</div>
+                            <div class="price">$${p.price}</div>
+                            <div class="rating">★★★★☆ ${p.rating}</div>
+                        </div>
+                        <button class="add-btn" onclick="addToCart('${id}')">Add to Cart</button>
+                    </div>`;
+            });
+            grid.innerHTML = html || '<div style="text-align: center; padding: 50px; color: #666;">No products found.</div>';
+        }
+
+        function filterProducts(gender, subcategory, brand) {
+            logWebsiteEvent({ step_id: `S4_Click_${brand.charAt(0).toUpperCase() + brand.slice(1)}`, action: 'CLICK', target_element: `brand: ${brand}` });
+            currentFilter = `${gender}-${subcategory}-${brand}`;
+            document.getElementById('dropdown-container').classList.remove('open');
+            closeAllSubmenus();
+            renderProducts();
+        }
+
+        function addToCart(productId) {
+            logWebsiteEvent({ step_id: 'S6_Add_to_Cart', action: 'CLICK', product_id: productId });
+            const existing = cart.find(item => item.id === productId);
+            if (existing) { existing.quantity++; } else { cart.push({ id: productId, quantity: 1 }); }
+            updateCartCount();
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartCount();
+            showCart();
+        }
+
+        function updateCartCount() {
+            document.getElementById('cart-count').textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
+        }
+
+        function showProducts() {
+            document.getElementById('products-page').style.display = 'block';
+            document.getElementById('cart-page').style.display = 'none';
+            document.getElementById('success-page').style.display = 'none';
+            document.getElementById('products-tab').classList.add('active');
+            document.getElementById('cart-tab').classList.remove('active');
+        }
+
+        function showCart() {
+            document.getElementById('products-page').style.display = 'none';
+            document.getElementById('cart-page').style.display = 'block';
+            document.getElementById('success-page').style.display = 'none';
+            document.getElementById('products-tab').classList.remove('active');
+            document.getElementById('cart-tab').classList.add('active');
+            renderCart();
+        }
+
+        function showSuccess() {
+            document.getElementById('products-page').style.display = 'none';
+            document.getElementById('cart-page').style.display = 'none';
+            document.getElementById('success-page').style.display = 'block';
+            renderSuccessPage();
+        }
+
+        function renderCart() {
+            const cartItems = document.getElementById('cart-items');
+            const cartSummary = document.getElementById('cart-summary');
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+                cartSummary.innerHTML = '';
+                return;
+            }
+            let itemsHtml = '';
+            let total = 0;
+            cart.forEach(item => {
+                const product = products[item.id];
+                const itemTotal = product.price * item.quantity;
+                total += itemTotal;
+                itemsHtml += `
+                    <div class="cart-item">
+                        <div><h3>${product.name}</h3><div>Qty: ${item.quantity}</div></div>
+                        <div><div class="price">$${itemTotal}</div><button onclick="removeFromCart('${item.id}')">Remove</button></div>
+                    </div>`;
+            });
+            cartItems.innerHTML = itemsHtml;
+            cartSummary.innerHTML = `<h2>Order Summary</h2><div>Total: $${total}</div><button class="checkout-btn" onclick="proceedToCheckout()">Proceed to Checkout</button>`;
+        }
+
+        function proceedToCheckout() {
+            logWebsiteEvent({ step_id: 'S7_Checkout', action: 'CLICK', target_element: '.checkout-btn' });
+            lastOrder.items = [...cart];
+            lastOrder.total = cart.reduce((sum, item) => sum + (products[item.id].price * item.quantity), 0);
+            cart = [];
+            updateCartCount();
+            showSuccess();
+        }
+
+        function renderSuccessPage() {
+            const orderItems = document.getElementById('order-items');
+            const totalPaid = document.getElementById('total-paid');
+            let itemsHtml = '';
+            lastOrder.items.forEach(item => {
+                const product = products[item.id];
+                itemsHtml += `<div class="order-item"><span>${product.name} (Qty: ${item.quantity})</span><span>$${product.price * item.quantity}</span></div>`;
+            });
+            orderItems.innerHTML = itemsHtml;
+            totalPaid.textContent = `$${lastOrder.total}`;
+        }
+
+        function continueShopping() {
+            currentFilter = 'featured';
+            showProducts();
+            renderProducts();
+        }
+
+        renderProducts();
+
+        // --- MUTATION OBSERVER FOR LOGGING ---
+        const observer = new MutationObserver((mutationsList) => {
+            console.log("MutationObserver detected a change.");
+            for(const mutation of mutationsList) {
+                if (mutation.target.id === 'products-grid' && mutation.addedNodes.length > 0) {
+                    logWebsiteEvent({ step_id: 'S4_Verify_Grid', action: 'VERIFY', details: 'Product grid updated.' });
+                }
+                if (mutation.target.id === 'success-page' && mutation.attributeName === 'style') {
+                     if (document.getElementById('success-page').style.display === 'block') {
+                        logWebsiteEvent({ step_id: 'S7_Verify_Page', action: 'VERIFY', details: 'Success page is visible.' });
+                        
+                        // Add a small delay to ensure all logs are captured
+                        setTimeout(() => {
+                            uploadLogs();
+                        }, 100);
+                     }
+                }
+            }
+        });
+        observer.observe(document.querySelector('.container'), { childList: true, subtree: true, attributes: true });
+        // --- END OBSERVER ---
+    </script>
+</body>
+</html>

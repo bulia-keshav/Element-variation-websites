@@ -1,0 +1,628 @@
+// This is a summary of all the code related to the Svelte dropdown component.
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Dropdown/svelte-dropdown-app/src/components/MultiLevelDropdown.svelte
+// This is the core dropdown component. It handles its own state for being open/closed
+// and which submenus are visible. It dispatches a 'filter' event when an item is selected.
+// ========================================================================
+
+<script>
+  import { createEventDispatcher } from 'svelte';
+  
+  const dispatch = createEventDispatcher();
+  
+  export let isOpen = false;
+  
+  let openSubmenus = new Set();
+  
+  function toggleDropdown() {
+    isOpen = !isOpen;
+    if (!isOpen) {
+      openSubmenus.clear();
+      openSubmenus = openSubmenus;
+    }
+  }
+  
+  function toggleSubmenu(event, menuId) {
+    event.stopPropagation();
+    
+    if (openSubmenus.has(menuId)) {
+      openSubmenus.delete(menuId);
+    } else {
+      // Close siblings at the same level
+      const parts = menuId.split('-');
+      const level = parts.length;
+      const prefix = parts.slice(0, -1).join('-');
+      
+      // Remove all submenus at the same level or deeper
+      for (let submenu of openSubmenus) {
+        const submenuParts = submenu.split('-');
+        if (submenuParts.length >= level && 
+            (level === 1 || submenu.startsWith(prefix + '-'))) {
+          openSubmenus.delete(submenu);
+        }
+      }
+      
+      openSubmenus.add(menuId);
+    }
+    openSubmenus = openSubmenus;
+  }
+  
+  function filterProducts(gender, subcategory, brand) {
+    dispatch('filter', { gender, subcategory, brand });
+    isOpen = false;
+    openSubmenus.clear();
+    openSubmenus = openSubmenus;
+  }
+  
+  function handleClickOutside(event) {
+    if (!event.target.closest('.dropdown-container')) {
+      isOpen = false;
+      openSubmenus.clear();
+      openSubmenus = openSubmenus;
+    }
+  }
+</script>
+
+<svelte:window on:click={handleClickOutside} />
+
+<div class="relative inline-block my-5 dropdown-container">
+  <button 
+    class="bg-amazon-blue text-white px-5 py-3 border-none rounded cursor-pointer text-base flex items-center gap-2 hover:bg-amazon-blue-light transition-colors"
+    on:click={toggleDropdown}
+  >
+    <span>All Products</span>
+    <span class="dropdown-arrow transition-transform duration-300 {isOpen ? 'dropdown-arrow-rotate' : ''}">▼</span>
+  </button>
+  
+  {#if isOpen}
+    <div class="absolute top-full left-0 bg-white border border-gray-300 rounded shadow-lg min-w-[200px] z-50 dropdown-menu">
+      <!-- Men -->
+      <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50 dropdown-item"
+           on:click={(e) => toggleSubmenu(e, 'men')}
+           role="button"
+           tabindex="0">
+        <span>Men</span>
+        <span class="text-gray-600">►</span>
+        
+        {#if openSubmenus.has('men')}
+          <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[180px] dropdown-submenu">
+            <!-- Men > Shoes -->
+            <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50"
+                 on:click={(e) => toggleSubmenu(e, 'men-shoes')}>
+              <span>Shoes</span>
+              <span class="text-gray-600">►</span>
+              
+              {#if openSubmenus.has('men-shoes')}
+                <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] dropdown-submenu">
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('men', 'shoes', 'nike')}>Nike</div>
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('men', 'shoes', 'adidas')}>Adidas</div>
+                </div>
+              {/if}
+            </div>
+            
+            <!-- Men > Clothing -->
+            <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50"
+                 on:click={(e) => toggleSubmenu(e, 'men-clothing')}>
+              <span>Clothing</span>
+              <span class="text-gray-600">►</span>
+              
+              {#if openSubmenus.has('men-clothing')}
+                <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] dropdown-submenu">
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('men', 'clothing', 'tshirts')}>T-Shirts</div>
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('men', 'clothing', 'jeans')}>Jeans</div>
+                </div>
+              {/if}
+            </div>
+          </div>
+        {/if}
+      </div>
+      
+      <!-- Women -->
+      <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50"
+           on:click={(e) => toggleSubmenu(e, 'women')}>
+        <span>Women</span>
+        <span class="text-gray-600">►</span>
+        
+        {#if openSubmenus.has('women')}
+          <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[180px] dropdown-submenu">
+            <!-- Women > Shoes -->
+            <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50"
+                 on:click={(e) => toggleSubmenu(e, 'women-shoes')}>
+              <span>Shoes</span>
+              <span class="text-gray-600">►</span>
+              
+              {#if openSubmenus.has('women-shoes')}
+                <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] dropdown-submenu">
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('women', 'shoes', 'nike')}>Nike</div>
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('women', 'shoes', 'adidas')}>Adidas</div>
+                </div>
+              {/if}
+            </div>
+            
+            <!-- Women > Electronics -->
+            <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50"
+                 on:click={(e) => toggleSubmenu(e, 'women-electronics')}>
+              <span>Electronics</span>
+              <span class="text-gray-600">►</span>
+              
+              {#if openSubmenus.has('women-electronics')}
+                <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] dropdown-submenu">
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('women', 'electronics', 'headphones')}>Headphones</div>
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('women', 'electronics', 'smartwatch')}>Smartwatch</div>
+                </div>
+              {/if}
+            </div>
+          </div>
+        {/if}
+      </div>
+      
+      <!-- Home -->
+      <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50"
+           on:click={(e) => toggleSubmenu(e, 'home')}>
+        <span>Home</span>
+        <span class="text-gray-600">►</span>
+        
+        {#if openSubmenus.has('home')}
+          <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[180px] dropdown-submenu">
+            <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('home', 'garden', 'plants')}>Plants</div>
+            <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('home', 'decor', 'candles')}>Candles</div>
+          </div>
+        {/if}
+      </div>
+    </div>
+  {/if}
+</div>
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Dropdown/svelte-dropdown-app/src/stores.js
+// This file manages the application's state. The `currentFilter` store is
+// updated by the dropdown and read by the ProductsPage to display the correct items.
+// ========================================================================
+
+import { writable } from 'svelte/store';
+
+export const currentPage = writable('products'); // products, cart, success
+export const cart = writable([]); // { id, quantity }
+export const lastOrder = writable({ items: [], total: 0 });
+
+// This store is directly controlled by the dropdown component
+export const currentFilter = writable('featured'); // e.g., 'men-shoes-nike'
+
+// The product data that is filtered based on the dropdown's selection
+export const products = {
+    // ... all product data objects
+    headphones: { name: 'Wireless Headphones', price: 89, rating: '4.2', category: 'electronics', description: 'Bluetooth noise-canceling headphones', gender: 'women', subcategory: 'electronics', brand: 'headphones' },
+    smartwatch: { name: 'Smart Fitness Watch', price: 199, rating: '4.4', category: 'electronics', description: 'Track your fitness and health metrics', gender: 'women', subcategory: 'electronics', brand: 'smartwatch' },
+    tshirt: { name: 'Cotton T-Shirt', price: 25, rating: '4.0', category: 'clothing', description: 'Comfortable 100% cotton t-shirt', gender: 'men', subcategory: 'clothing', brand: 'tshirts' },
+    plant: { name: 'Indoor Plant Set', price: 45, rating: '4.5', category: 'home', description: 'Set of 3 air-purifying plants', gender: 'home', subcategory: 'garden', brand: 'plants' },
+    candle: { name: 'Scented Candles Pack', price: 32, rating: '4.2', category: 'home', description: 'Pack of 4 aromatherapy candles', gender: 'home', subcategory: 'decor', brand: 'candles' },
+    nike_air_max_90: { name: 'Nike Air Max 90', price: 110, rating: '4.6', category: 'shoes', description: 'Classic Air Max with visible air cushioning', gender: 'men', subcategory: 'shoes', brand: 'nike' },
+    adidas_ultraboost: { name: 'Adidas Ultraboost', price: 180, rating: '4.7', category: 'shoes', description: 'Premium running shoes with boost technology', gender: 'men', subcategory: 'shoes', brand: 'adidas' },
+    // ... etc
+};
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Dropdown/svelte-dropdown-app/src/components/ProductsPage.svelte
+// This component uses the MultiLevelDropdown and listens for the 'filter' event
+// to update the product list.
+// ========================================================================
+
+<script>
+  import { onMount } from 'svelte';
+  import { cart, currentFilter, products } from '../stores.js';
+  import MultiLevelDropdown from './MultiLevelDropdown.svelte';
+  import ProductCard from './ProductCard.svelte';
+  
+  let currentFilterValue = 'featured';
+  let filteredProducts = [];
+  let productsTitle = 'Featured Products';
+  
+  onMount(() => {
+    currentFilter.subscribe(value => {
+      currentFilterValue = value;
+      updateFilteredProducts();
+    });
+    
+    updateFilteredProducts();
+  });
+  
+  function updateFilteredProducts() {
+    if (currentFilterValue === 'featured') {
+      productsTitle = 'Featured Products';
+      filteredProducts = Object.entries(products).filter(([id, product]) => 
+        ['headphones', 'smartwatch', 'tshirt', 'plant', 'candle'].includes(id)
+      );
+    } else {
+      const [gender, subcategory, brand] = currentFilterValue.split('-');
+      productsTitle = `${gender.charAt(0).toUpperCase() + gender.slice(1)} > ${subcategory.charAt(0).toUpperCase() + subcategory.slice(1)} > ${brand.charAt(0).toUpperCase() + brand.slice(1)}`;
+      
+      filteredProducts = Object.entries(products).filter(([id, product]) => 
+        product.gender === gender && product.subcategory === subcategory && product.brand === brand
+      );
+    }
+  }
+  
+  // This function handles the event dispatched from the dropdown
+  function handleFilter(event) {
+    const { gender, subcategory, brand } = event.detail;
+    currentFilter.set(`${gender}-${subcategory}-${brand}`);
+  }
+
+  // ... (handleAddToCart function)
+</script>
+
+<div>
+  <h1 class="text-3xl font-bold text-amazon-blue mb-5">Shop Our Products</h1>
+  
+  <!-- The dropdown component is used here -->
+  <MultiLevelDropdown on:filter={handleFilter} />
+  
+  <div class="products-section">
+    <h2 class="text-2xl font-semibold text-amazon-blue my-5">{productsTitle}</h2>
+    
+    {#if filteredProducts.length > 0}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mt-5">
+        {#each filteredProducts as [productId, product] (productId)}
+          <ProductCard {productId} on:addToCart={handleAddToCart} />
+        {/each}
+      </div>
+    {:else}
+      <div class="text-center py-12 text-gray-600">
+        No products found for this selection.
+      </div>
+    {/if}
+  </div>
+</div>
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Dropdown/svelte-dropdown-app/src/app.css
+// These are the global CSS styles that apply to the dropdown component.
+// They are used for positioning, visibility, and animations.
+// ========================================================================
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.dropdown-arrow {
+  transition: transform 0.3s ease;
+}
+
+.dropdown-arrow-rotate {
+  transform: rotate(180deg);
+}
+
+/* Ensure dropdown menus are above other content */
+.dropdown-menu {
+  z-index: 1000;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dropdown-submenu {
+  z-index: 1001;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Debug styles */
+.dropdown-item {
+  user-select: none;
+  -webkit-user-select: none;
+}
+```// This is a summary of all the code related to the Svelte dropdown component.
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Dropdown/svelte-dropdown-app/src/components/MultiLevelDropdown.svelte
+// This is the core dropdown component. It handles its own state for being open/closed
+// and which submenus are visible. It dispatches a 'filter' event when an item is selected.
+// ========================================================================
+
+<script>
+  import { createEventDispatcher } from 'svelte';
+  
+  const dispatch = createEventDispatcher();
+  
+  export let isOpen = false;
+  
+  let openSubmenus = new Set();
+  
+  function toggleDropdown() {
+    isOpen = !isOpen;
+    if (!isOpen) {
+      openSubmenus.clear();
+      openSubmenus = openSubmenus;
+    }
+  }
+  
+  function toggleSubmenu(event, menuId) {
+    event.stopPropagation();
+    
+    if (openSubmenus.has(menuId)) {
+      openSubmenus.delete(menuId);
+    } else {
+      // Close siblings at the same level
+      const parts = menuId.split('-');
+      const level = parts.length;
+      const prefix = parts.slice(0, -1).join('-');
+      
+      // Remove all submenus at the same level or deeper
+      for (let submenu of openSubmenus) {
+        const submenuParts = submenu.split('-');
+        if (submenuParts.length >= level && 
+            (level === 1 || submenu.startsWith(prefix + '-'))) {
+          openSubmenus.delete(submenu);
+        }
+      }
+      
+      openSubmenus.add(menuId);
+    }
+    openSubmenus = openSubmenus;
+  }
+  
+  function filterProducts(gender, subcategory, brand) {
+    dispatch('filter', { gender, subcategory, brand });
+    isOpen = false;
+    openSubmenus.clear();
+    openSubmenus = openSubmenus;
+  }
+  
+  function handleClickOutside(event) {
+    if (!event.target.closest('.dropdown-container')) {
+      isOpen = false;
+      openSubmenus.clear();
+      openSubmenus = openSubmenus;
+    }
+  }
+</script>
+
+<svelte:window on:click={handleClickOutside} />
+
+<div class="relative inline-block my-5 dropdown-container">
+  <button 
+    class="bg-amazon-blue text-white px-5 py-3 border-none rounded cursor-pointer text-base flex items-center gap-2 hover:bg-amazon-blue-light transition-colors"
+    on:click={toggleDropdown}
+  >
+    <span>All Products</span>
+    <span class="dropdown-arrow transition-transform duration-300 {isOpen ? 'dropdown-arrow-rotate' : ''}">▼</span>
+  </button>
+  
+  {#if isOpen}
+    <div class="absolute top-full left-0 bg-white border border-gray-300 rounded shadow-lg min-w-[200px] z-50 dropdown-menu">
+      <!-- Men -->
+      <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50 dropdown-item"
+           on:click={(e) => toggleSubmenu(e, 'men')}
+           role="button"
+           tabindex="0">
+        <span>Men</span>
+        <span class="text-gray-600">►</span>
+        
+        {#if openSubmenus.has('men')}
+          <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[180px] dropdown-submenu">
+            <!-- Men > Shoes -->
+            <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50"
+                 on:click={(e) => toggleSubmenu(e, 'men-shoes')}>
+              <span>Shoes</span>
+              <span class="text-gray-600">►</span>
+              
+              {#if openSubmenus.has('men-shoes')}
+                <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] dropdown-submenu">
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('men', 'shoes', 'nike')}>Nike</div>
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('men', 'shoes', 'adidas')}>Adidas</div>
+                </div>
+              {/if}
+            </div>
+            
+            <!-- Men > Clothing -->
+            <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50"
+                 on:click={(e) => toggleSubmenu(e, 'men-clothing')}>
+              <span>Clothing</span>
+              <span class="text-gray-600">►</span>
+              
+              {#if openSubmenus.has('men-clothing')}
+                <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] dropdown-submenu">
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('men', 'clothing', 'tshirts')}>T-Shirts</div>
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('men', 'clothing', 'jeans')}>Jeans</div>
+                </div>
+              {/if}
+            </div>
+          </div>
+        {/if}
+      </div>
+      
+      <!-- Women -->
+      <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50"
+           on:click={(e) => toggleSubmenu(e, 'women')}>
+        <span>Women</span>
+        <span class="text-gray-600">►</span>
+        
+        {#if openSubmenus.has('women')}
+          <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[180px] dropdown-submenu">
+            <!-- Women > Shoes -->
+            <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50"
+                 on:click={(e) => toggleSubmenu(e, 'women-shoes')}>
+              <span>Shoes</span>
+              <span class="text-gray-600">►</span>
+              
+              {#if openSubmenus.has('women-shoes')}
+                <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] dropdown-submenu">
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('women', 'shoes', 'nike')}>Nike</div>
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('women', 'shoes', 'adidas')}>Adidas</div>
+                </div>
+              {/if}
+            </div>
+            
+            <!-- Women > Electronics -->
+            <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50"
+                 on:click={(e) => toggleSubmenu(e, 'women-electronics')}>
+              <span>Electronics</span>
+              <span class="text-gray-600">►</span>
+              
+              {#if openSubmenus.has('women-electronics')}
+                <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[160px] dropdown-submenu">
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('women', 'electronics', 'headphones')}>Headphones</div>
+                  <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('women', 'electronics', 'smartwatch')}>Smartwatch</div>
+                </div>
+              {/if}
+            </div>
+          </div>
+        {/if}
+      </div>
+      
+      <!-- Home -->
+      <div class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center relative hover:bg-gray-50"
+           on:click={(e) => toggleSubmenu(e, 'home')}>
+        <span>Home</span>
+        <span class="text-gray-600">►</span>
+        
+        {#if openSubmenus.has('home')}
+          <div class="absolute left-full top-0 bg-white border border-gray-300 rounded shadow-lg min-w-[180px] dropdown-submenu">
+            <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('home', 'garden', 'plants')}>Plants</div>
+            <div class="px-4 py-3 cursor-pointer hover:bg-gray-50" on:click={() => filterProducts('home', 'decor', 'candles')}>Candles</div>
+          </div>
+        {/if}
+      </div>
+    </div>
+  {/if}
+</div>
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Dropdown/svelte-dropdown-app/src/stores.js
+// This file manages the application's state. The `currentFilter` store is
+// updated by the dropdown and read by the ProductsPage to display the correct items.
+// ========================================================================
+
+import { writable } from 'svelte/store';
+
+export const currentPage = writable('products'); // products, cart, success
+export const cart = writable([]); // { id, quantity }
+export const lastOrder = writable({ items: [], total: 0 });
+
+// This store is directly controlled by the dropdown component
+export const currentFilter = writable('featured'); // e.g., 'men-shoes-nike'
+
+// The product data that is filtered based on the dropdown's selection
+export const products = {
+    // ... all product data objects
+    headphones: { name: 'Wireless Headphones', price: 89, rating: '4.2', category: 'electronics', description: 'Bluetooth noise-canceling headphones', gender: 'women', subcategory: 'electronics', brand: 'headphones' },
+    smartwatch: { name: 'Smart Fitness Watch', price: 199, rating: '4.4', category: 'electronics', description: 'Track your fitness and health metrics', gender: 'women', subcategory: 'electronics', brand: 'smartwatch' },
+    tshirt: { name: 'Cotton T-Shirt', price: 25, rating: '4.0', category: 'clothing', description: 'Comfortable 100% cotton t-shirt', gender: 'men', subcategory: 'clothing', brand: 'tshirts' },
+    plant: { name: 'Indoor Plant Set', price: 45, rating: '4.5', category: 'home', description: 'Set of 3 air-purifying plants', gender: 'home', subcategory: 'garden', brand: 'plants' },
+    candle: { name: 'Scented Candles Pack', price: 32, rating: '4.2', category: 'home', description: 'Pack of 4 aromatherapy candles', gender: 'home', subcategory: 'decor', brand: 'candles' },
+    nike_air_max_90: { name: 'Nike Air Max 90', price: 110, rating: '4.6', category: 'shoes', description: 'Classic Air Max with visible air cushioning', gender: 'men', subcategory: 'shoes', brand: 'nike' },
+    adidas_ultraboost: { name: 'Adidas Ultraboost', price: 180, rating: '4.7', category: 'shoes', description: 'Premium running shoes with boost technology', gender: 'men', subcategory: 'shoes', brand: 'adidas' },
+    // ... etc
+};
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Dropdown/svelte-dropdown-app/src/components/ProductsPage.svelte
+// This component uses the MultiLevelDropdown and listens for the 'filter' event
+// to update the product list.
+// ========================================================================
+
+<script>
+  import { onMount } from 'svelte';
+  import { cart, currentFilter, products } from '../stores.js';
+  import MultiLevelDropdown from './MultiLevelDropdown.svelte';
+  import ProductCard from './ProductCard.svelte';
+  
+  let currentFilterValue = 'featured';
+  let filteredProducts = [];
+  let productsTitle = 'Featured Products';
+  
+  onMount(() => {
+    currentFilter.subscribe(value => {
+      currentFilterValue = value;
+      updateFilteredProducts();
+    });
+    
+    updateFilteredProducts();
+  });
+  
+  function updateFilteredProducts() {
+    if (currentFilterValue === 'featured') {
+      productsTitle = 'Featured Products';
+      filteredProducts = Object.entries(products).filter(([id, product]) => 
+        ['headphones', 'smartwatch', 'tshirt', 'plant', 'candle'].includes(id)
+      );
+    } else {
+      const [gender, subcategory, brand] = currentFilterValue.split('-');
+      productsTitle = `${gender.charAt(0).toUpperCase() + gender.slice(1)} > ${subcategory.charAt(0).toUpperCase() + subcategory.slice(1)} > ${brand.charAt(0).toUpperCase() + brand.slice(1)}`;
+      
+      filteredProducts = Object.entries(products).filter(([id, product]) => 
+        product.gender === gender && product.subcategory === subcategory && product.brand === brand
+      );
+    }
+  }
+  
+  // This function handles the event dispatched from the dropdown
+  function handleFilter(event) {
+    const { gender, subcategory, brand } = event.detail;
+    currentFilter.set(`${gender}-${subcategory}-${brand}`);
+  }
+
+  // ... (handleAddToCart function)
+</script>
+
+<div>
+  <h1 class="text-3xl font-bold text-amazon-blue mb-5">Shop Our Products</h1>
+  
+  <!-- The dropdown component is used here -->
+  <MultiLevelDropdown on:filter={handleFilter} />
+  
+  <div class="products-section">
+    <h2 class="text-2xl font-semibold text-amazon-blue my-5">{productsTitle}</h2>
+    
+    {#if filteredProducts.length > 0}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mt-5">
+        {#each filteredProducts as [productId, product] (productId)}
+          <ProductCard {productId} on:addToCart={handleAddToCart} />
+        {/each}
+      </div>
+    {:else}
+      <div class="text-center py-12 text-gray-600">
+        No products found for this selection.
+      </div>
+    {/if}
+  </div>
+</div>
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Dropdown/svelte-dropdown-app/src/app.css
+// These are the global CSS styles that apply to the dropdown component.
+// They are used for positioning, visibility, and animations.
+// ========================================================================
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.dropdown-arrow {
+  transition: transform 0.3s ease;
+}
+
+.dropdown-arrow-rotate {
+  transform: rotate(180deg);
+}
+
+/* Ensure dropdown menus are above other content */
+.dropdown-menu {
+  z-index: 1000;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dropdown-submenu {
+  z-index: 1001;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Debug styles */
+.dropdown-item {
+  user-select: none;
+  -webkit-user-select: none;
+}

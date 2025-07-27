@@ -1,0 +1,688 @@
+// This is a summary of all the code related to the Svelte search page.
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/svelte-search-app/src/App.svelte
+// This is the core component for the search page. It contains the entire UI
+// for the advanced search form and the logic to construct the search query URL.
+// ========================================================================
+
+<script>
+  import {
+    searchTerms,
+    subjects,
+    crossListed,
+    dateFilter,
+    specificYear,
+    fromDate,
+    toDate,
+    dateType,
+    showAbstracts,
+    resultsPerPage,
+    includeOlder
+  } from './stores.js';
+
+  function addSearchTerm() {
+    searchTerms.update(terms => [...terms, { term: '', field: 'title' }]);
+  }
+
+  function removeSearchTerm(index) {
+    searchTerms.update(terms => terms.filter((_, i) => i !== index));
+  }
+
+  function performSearch() {
+    const params = new URLSearchParams();
+
+    // Search terms
+    $searchTerms.forEach((term, index) => {
+      if (term.term.trim()) {
+        params.append(`term${index}`, term.term.trim());
+        params.append(`field${index}`, term.field);
+      }
+    });
+
+    // Subjects
+    const selectedSubjects = Object.entries($subjects)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([subject, _]) => subject);
+    if (selectedSubjects.length > 0) {
+      params.append('subjects', selectedSubjects.join(','));
+    }
+    params.append('crossListed', $crossListed);
+
+    // Date filter
+    params.append('dateFilter', $dateFilter);
+    if ($dateFilter === 'specific_year') {
+      params.append('year', $specificYear);
+    } else if ($dateFilter === 'date_range') {
+      params.append('from', $fromDate);
+      params.append('to', $toDate);
+    }
+    params.append('dateType', $dateType);
+
+    // Other options
+    params.append('abstracts', $showAbstracts);
+    params.append('perPage', $resultsPerPage);
+    params.append('older', $includeOlder);
+
+    // Redirect to the results page with the query parameters
+    window.location.href = `results.html?${params.toString()}`;
+  }
+</script>
+
+<main class="container">
+  <header>
+    <h1>Advanced Search</h1>
+    <p>Search for academic papers with fine-grained control.</p>
+  </header>
+
+  <form on:submit|preventDefault={performSearch}>
+    <!-- Search Terms Section -->
+    <div class="form-section">
+      <h2>Search Terms</h2>
+      {#each $searchTerms as term, i}
+        <div class="search-term-row">
+          <input type="text" bind:value={term.term} placeholder="e.g., Graph Neural Networks" class="term-input">
+          <select bind:value={term.field} class="field-select">
+            <option value="all">All Fields</option>
+            <option value="title">Title</option>
+            <option value="author">Author</option>
+            <option value="abstract">Abstract</option>
+            <option value="comments">Comments</option>
+            <option value="journal_ref">Journal Reference</option>
+            <option value="id">ID</option>
+          </select>
+          {#if i > 0}
+            <button type="button" on:click={() => removeSearchTerm(i)} class="remove-btn">×</button>
+          {/if}
+        </div>
+      {/each}
+      <button type="button" on:click={addSearchTerm} class="add-btn">Add another term</button>
+    </div>
+
+    <!-- Subject Filter Section -->
+    <div class="form-section">
+      <h2>Filter by Subject</h2>
+      <div class="subject-grid">
+        {#each Object.keys($subjects) as subject}
+          <label>
+            <input type="checkbox" bind:checked={$subjects[subject]}>
+            {subject.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+          </label>
+        {/each}
+      </div>
+      <div class="radio-group">
+        <label><input type="radio" bind:group={$crossListed} value="include"> Include cross-listed</label>
+        <label><input type="radio" bind:group={$crossListed} value="exclude"> Exclude cross-listed</label>
+      </div>
+    </div>
+
+    <!-- Date Filter Section -->
+    <div class="form-section">
+      <h2>Filter by Date</h2>
+      <select bind:value={$dateFilter}>
+        <option value="all">All dates</option>
+        <option value="past_12_months">Past 12 months</option>
+        <option value="specific_year">Specific year</option>
+        <option value="date_range">Date range</option>
+      </select>
+      {#if $dateFilter === 'specific_year'}
+        <input type="number" bind:value={$specificYear} placeholder="YYYY" class="date-input">
+      {/if}
+      {#if $dateFilter === 'date_range'}
+        <div class="date-range-inputs">
+          <input type="date" bind:value={$fromDate}>
+          <span>to</span>
+          <input type="date" bind:value={$toDate}>
+        </div>
+      {/if}
+      <div class="radio-group">
+        <label><input type="radio" bind:group={$dateType} value="submission-recent"> Submission Date (recent first)</label>
+        <label><input type="radio" bind:group={$dateType} value="announcement-recent"> Announcement Date (recent first)</label>
+      </div>
+    </div>
+
+    <!-- Display Options Section -->
+    <div class="form-section">
+      <h2>Display Options</h2>
+      <div class="radio-group">
+        <label><input type="radio" bind:group={$showAbstracts} value="show"> Show abstracts</label>
+        <label><input type="radio" bind:group={$showAbstracts} value="hide"> Hide abstracts</label>
+      </div>
+      <div class="results-per-page">
+        <label for="results-per-page">Results per page:</label>
+        <select id="results-per-page" bind:value={$resultsPerPage}>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+        </select>
+      </div>
+      <label class="checkbox-label">
+        <input type="checkbox" bind:checked={$includeOlder}>
+        Include older versions of papers
+      </label>
+    </div>
+
+    <div class="submit-section">
+      <button type="submit" class="search-btn">Search</button>
+    </div>
+  </form>
+</main>
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/svelte-search-app/src/stores.js
+// This file defines all the reactive stores that hold the state of the
+// search form. The App.svelte component binds its inputs to these stores.
+// ========================================================================
+
+import { writable } from 'svelte/store';
+
+export const searchTerms = writable([{ term: '', field: 'title' }]);
+export const subjects = writable({
+  cs: false,
+  physics: false,
+  econ: false,
+  'q-bio': false,
+  eess: false,
+  'q-fin': false,
+  math: false,
+  stat: false
+});
+export const crossListed = writable('include');
+export const dateFilter = writable('all');
+export const specificYear = writable('');
+export const fromDate = writable('');
+export const toDate = writable('');
+export const dateType = writable('submission-recent');
+export const showAbstracts = writable('show');
+export const resultsPerPage = writable('50');
+export const includeOlder = writable(false);
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/svelte-search-app/src/app.css
+// These are the global CSS styles that apply to the search form.
+// ========================================================================
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --primary-color: #333;
+  --secondary-color: #555;
+  --background-color: #f8f9fa;
+  --form-bg-color: #ffffff;
+  --border-color: #dee2e6;
+  --accent-color: #007bff;
+  --accent-hover-color: #0056b3;
+  --danger-color: #dc3545;
+}
+
+body {
+  margin: 0;
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+.container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+}
+
+h2 {
+  font-size: 1.5rem;
+  color: var(--secondary-color);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-section {
+  background: var(--form-bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-term-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+.term-input {
+  flex-grow: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.field-select, select {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: white;
+}
+
+.remove-btn, .add-btn {
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.remove-btn {
+  background-color: #f1f1f1;
+  color: var(--danger-color);
+  font-weight: bold;
+}
+
+.add-btn {
+  background-color: #e9ecef;
+  color: var(--primary-color);
+  margin-top: 0.5rem;
+}
+
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.radio-group, .checkbox-label {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.date-range-inputs {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.date-input, input[type="date"] {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.submit-section {
+  text-align: center;
+}
+
+.search-btn {
+  background-color: var(--accent-color);
+  color: white;
+  font-size: 1.2rem;
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-btn:hover {
+  background-color: var(--accent-hover-color);
+}
+```// This is a summary of all the code related to the Svelte search page.
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/svelte-search-app/src/App.svelte
+// This is the core component for the search page. It contains the entire UI
+// for the advanced search form and the logic to construct the search query URL.
+// ========================================================================
+
+<script>
+  import {
+    searchTerms,
+    subjects,
+    crossListed,
+    dateFilter,
+    specificYear,
+    fromDate,
+    toDate,
+    dateType,
+    showAbstracts,
+    resultsPerPage,
+    includeOlder
+  } from './stores.js';
+
+  function addSearchTerm() {
+    searchTerms.update(terms => [...terms, { term: '', field: 'title' }]);
+  }
+
+  function removeSearchTerm(index) {
+    searchTerms.update(terms => terms.filter((_, i) => i !== index));
+  }
+
+  function performSearch() {
+    const params = new URLSearchParams();
+
+    // Search terms
+    $searchTerms.forEach((term, index) => {
+      if (term.term.trim()) {
+        params.append(`term${index}`, term.term.trim());
+        params.append(`field${index}`, term.field);
+      }
+    });
+
+    // Subjects
+    const selectedSubjects = Object.entries($subjects)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([subject, _]) => subject);
+    if (selectedSubjects.length > 0) {
+      params.append('subjects', selectedSubjects.join(','));
+    }
+    params.append('crossListed', $crossListed);
+
+    // Date filter
+    params.append('dateFilter', $dateFilter);
+    if ($dateFilter === 'specific_year') {
+      params.append('year', $specificYear);
+    } else if ($dateFilter === 'date_range') {
+      params.append('from', $fromDate);
+      params.append('to', $toDate);
+    }
+    params.append('dateType', $dateType);
+
+    // Other options
+    params.append('abstracts', $showAbstracts);
+    params.append('perPage', $resultsPerPage);
+    params.append('older', $includeOlder);
+
+    // Redirect to the results page with the query parameters
+    window.location.href = `results.html?${params.toString()}`;
+  }
+</script>
+
+<main class="container">
+  <header>
+    <h1>Advanced Search</h1>
+    <p>Search for academic papers with fine-grained control.</p>
+  </header>
+
+  <form on:submit|preventDefault={performSearch}>
+    <!-- Search Terms Section -->
+    <div class="form-section">
+      <h2>Search Terms</h2>
+      {#each $searchTerms as term, i}
+        <div class="search-term-row">
+          <input type="text" bind:value={term.term} placeholder="e.g., Graph Neural Networks" class="term-input">
+          <select bind:value={term.field} class="field-select">
+            <option value="all">All Fields</option>
+            <option value="title">Title</option>
+            <option value="author">Author</option>
+            <option value="abstract">Abstract</option>
+            <option value="comments">Comments</option>
+            <option value="journal_ref">Journal Reference</option>
+            <option value="id">ID</option>
+          </select>
+          {#if i > 0}
+            <button type="button" on:click={() => removeSearchTerm(i)} class="remove-btn">×</button>
+          {/if}
+        </div>
+      {/each}
+      <button type="button" on:click={addSearchTerm} class="add-btn">Add another term</button>
+    </div>
+
+    <!-- Subject Filter Section -->
+    <div class="form-section">
+      <h2>Filter by Subject</h2>
+      <div class="subject-grid">
+        {#each Object.keys($subjects) as subject}
+          <label>
+            <input type="checkbox" bind:checked={$subjects[subject]}>
+            {subject.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+          </label>
+        {/each}
+      </div>
+      <div class="radio-group">
+        <label><input type="radio" bind:group={$crossListed} value="include"> Include cross-listed</label>
+        <label><input type="radio" bind:group={$crossListed} value="exclude"> Exclude cross-listed</label>
+      </div>
+    </div>
+
+    <!-- Date Filter Section -->
+    <div class="form-section">
+      <h2>Filter by Date</h2>
+      <select bind:value={$dateFilter}>
+        <option value="all">All dates</option>
+        <option value="past_12_months">Past 12 months</option>
+        <option value="specific_year">Specific year</option>
+        <option value="date_range">Date range</option>
+      </select>
+      {#if $dateFilter === 'specific_year'}
+        <input type="number" bind:value={$specificYear} placeholder="YYYY" class="date-input">
+      {/if}
+      {#if $dateFilter === 'date_range'}
+        <div class="date-range-inputs">
+          <input type="date" bind:value={$fromDate}>
+          <span>to</span>
+          <input type="date" bind:value={$toDate}>
+        </div>
+      {/if}
+      <div class="radio-group">
+        <label><input type="radio" bind:group={$dateType} value="submission-recent"> Submission Date (recent first)</label>
+        <label><input type="radio" bind:group={$dateType} value="announcement-recent"> Announcement Date (recent first)</label>
+      </div>
+    </div>
+
+    <!-- Display Options Section -->
+    <div class="form-section">
+      <h2>Display Options</h2>
+      <div class="radio-group">
+        <label><input type="radio" bind:group={$showAbstracts} value="show"> Show abstracts</label>
+        <label><input type="radio" bind:group={$showAbstracts} value="hide"> Hide abstracts</label>
+      </div>
+      <div class="results-per-page">
+        <label for="results-per-page">Results per page:</label>
+        <select id="results-per-page" bind:value={$resultsPerPage}>
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+        </select>
+      </div>
+      <label class="checkbox-label">
+        <input type="checkbox" bind:checked={$includeOlder}>
+        Include older versions of papers
+      </label>
+    </div>
+
+    <div class="submit-section">
+      <button type="submit" class="search-btn">Search</button>
+    </div>
+  </form>
+</main>
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/svelte-search-app/src/stores.js
+// This file defines all the reactive stores that hold the state of the
+// search form. The App.svelte component binds its inputs to these stores.
+// ========================================================================
+
+import { writable } from 'svelte/store';
+
+export const searchTerms = writable([{ term: '', field: 'title' }]);
+export const subjects = writable({
+  cs: false,
+  physics: false,
+  econ: false,
+  'q-bio': false,
+  eess: false,
+  'q-fin': false,
+  math: false,
+  stat: false
+});
+export const crossListed = writable('include');
+export const dateFilter = writable('all');
+export const specificYear = writable('');
+export const fromDate = writable('');
+export const toDate = writable('');
+export const dateType = writable('submission-recent');
+export const showAbstracts = writable('show');
+export const resultsPerPage = writable('50');
+export const includeOlder = writable(false);
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/svelte-search-app/src/app.css
+// These are the global CSS styles that apply to the search form.
+// ========================================================================
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --primary-color: #333;
+  --secondary-color: #555;
+  --background-color: #f8f9fa;
+  --form-bg-color: #ffffff;
+  --border-color: #dee2e6;
+  --accent-color: #007bff;
+  --accent-hover-color: #0056b3;
+  --danger-color: #dc3545;
+}
+
+body {
+  margin: 0;
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+.container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+}
+
+h2 {
+  font-size: 1.5rem;
+  color: var(--secondary-color);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-section {
+  background: var(--form-bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-term-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+.term-input {
+  flex-grow: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.field-select, select {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: white;
+}
+
+.remove-btn, .add-btn {
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.remove-btn {
+  background-color: #f1f1f1;
+  color: var(--danger-color);
+  font-weight: bold;
+}
+
+.add-btn {
+  background-color: #e9ecef;
+  color: var(--primary-color);
+  margin-top: 0.5rem;
+}
+
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.radio-group, .checkbox-label {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.date-range-inputs {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.date-input, input[type="date"] {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.submit-section {
+  text-align: center;
+}
+
+.search-btn {
+  background-color: var(--accent-color);
+  color: white;
+  font-size: 1.2rem;
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-btn:hover {
+  background-color: var(--accent-hover-color);
+}

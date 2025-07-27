@@ -1,0 +1,732 @@
+// This is a summary of all the code related to the Angular search page.
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/angular-search-app/src/app/search/search.component.ts
+// This is the core component for the search page. It uses Angular's ReactiveFormsModule
+// to manage the form state and logic for constructing the search query.
+// ========================================================================
+
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-search',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './search.component.html',
+  styleUrls: ['./search.component.css']
+})
+export class SearchComponent implements OnInit {
+  searchForm!: FormGroup;
+  subjects = ['cs', 'physics', 'econ', 'q-bio', 'eess', 'q-fin', 'math', 'stat'];
+
+  constructor(private fb: FormBuilder, private router: Router) {}
+
+  ngOnInit(): void {
+    this.searchForm = this.fb.group({
+      searchTerms: this.fb.array([this.createSearchTerm()]),
+      subjects: this.fb.group(
+        this.subjects.reduce((acc, subject) => ({ ...acc, [subject]: false }), {})
+      ),
+      crossListed: ['include'],
+      dateFilter: ['all'],
+      specificYear: [''],
+      fromDate: [''],
+      toDate: [''],
+      dateType: ['submission-recent'],
+      showAbstracts: ['show'],
+      resultsPerPage: ['50'],
+      includeOlder: [false]
+    });
+  }
+
+  get searchTermsArray(): FormArray {
+    return this.searchForm.get('searchTerms') as FormArray;
+  }
+
+  createSearchTerm(): FormGroup {
+    return this.fb.group({
+      term: [''],
+      field: ['title']
+    });
+  }
+
+  addSearchTerm(): void {
+    this.searchTermsArray.push(this.createSearchTerm());
+  }
+
+  removeSearchTerm(index: number): void {
+    this.searchTermsArray.removeAt(index);
+  }
+
+  performSearch(): void {
+    if (this.searchForm.invalid) {
+      return;
+    }
+
+    const formValue = this.searchForm.value;
+    const queryParams: any = {};
+
+    // Search terms
+    formValue.searchTerms.forEach((item: any, index: number) => {
+      if (item.term.trim()) {
+        queryParams[`term${index}`] = item.term.trim();
+        queryParams[`field${index}`] = item.field;
+      }
+    });
+
+    // Subjects
+    const selectedSubjects = Object.entries(formValue.subjects)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([subject, _]) => subject);
+    if (selectedSubjects.length > 0) {
+      queryParams.subjects = selectedSubjects.join(',');
+    }
+    queryParams.crossListed = formValue.crossListed;
+
+    // Date filter
+    queryParams.dateFilter = formValue.dateFilter;
+    if (formValue.dateFilter === 'specific_year') {
+      queryParams.year = formValue.specificYear;
+    } else if (formValue.dateFilter === 'date_range') {
+      queryParams.from = formValue.fromDate;
+      queryParams.to = formValue.toDate;
+    }
+    queryParams.dateType = formValue.dateType;
+
+    // Other options
+    queryParams.abstracts = formValue.showAbstracts;
+    queryParams.perPage = formValue.resultsPerPage;
+    queryParams.older = formValue.includeOlder;
+
+    this.router.navigate(['/results'], { queryParams });
+  }
+}
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/angular-search-app/src/app/search/search.component.html
+// This is the HTML template for the search component, defining the structure
+// of the form and binding it to the FormGroup in the component's TypeScript file.
+// ========================================================================
+
+<div class="container">
+  <header>
+    <h1>Advanced Search</h1>
+    <p>Search for academic papers with fine-grained control.</p>
+  </header>
+
+  <form [formGroup]="searchForm" (ngSubmit)="performSearch()">
+    <!-- Search Terms Section -->
+    <div class="form-section">
+      <h2>Search Terms</h2>
+      <div formArrayName="searchTerms">
+        <div *ngFor="let termGroup of searchTermsArray.controls; let i = index" [formGroupName]="i" class="search-term-row">
+          <input type="text" formControlName="term" placeholder="e.g., Graph Neural Networks" class="term-input">
+          <select formControlName="field" class="field-select">
+            <option value="all">All Fields</option>
+            <option value="title">Title</option>
+            <option value="author">Author</option>
+            <option value="abstract">Abstract</option>
+            <option value="comments">Comments</option>
+            <option value="journal_ref">Journal Reference</option>
+            <option value="id">ID</option>
+          </select>
+          <button *ngIf="i > 0" type="button" (click)="removeSearchTerm(i)" class="remove-btn">×</button>
+        </div>
+      </div>
+      <button type="button" (click)="addSearchTerm()" class="add-btn">Add another term</button>
+    </div>
+
+    <!-- Subject Filter Section -->
+    <div class="form-section" formGroupName="subjects">
+      <h2>Filter by Subject</h2>
+      <div class="subject-grid">
+        <label *ngFor="let subject of subjects">
+          <input type="checkbox" [formControlName]="subject">
+          {{ subject.replace(/_/g, ' ') | titlecase }}
+        </label>
+      </div>
+      <div class="radio-group">
+        <label><input type="radio" formControlName="crossListed" value="include"> Include cross-listed</label>
+        <label><input type="radio" formControlName="crossListed" value="exclude"> Exclude cross-listed</label>
+      </div>
+    </div>
+
+    <!-- Date Filter Section -->
+    <div class="form-section">
+      <h2>Filter by Date</h2>
+      <select formControlName="dateFilter">
+        <option value="all">All dates</option>
+        <option value="past_12_months">Past 12 months</option>
+        <option value="specific_year">Specific year</option>
+        <option value="date_range">Date range</option>
+      </select>
+      <input *ngIf="searchForm.get('dateFilter')?.value === 'specific_year'" type="number" formControlName="specificYear" placeholder="YYYY" class="date-input">
+      <div *ngIf="searchForm.get('dateFilter')?.value === 'date_range'" class="date-range-inputs">
+        <input type="date" formControlName="fromDate">
+        <span>to</span>
+        <input type="date" formControlName="toDate">
+      </div>
+      <div class="radio-group">
+        <label><input type="radio" formControlName="dateType" value="submission-recent"> Submission Date (recent first)</label>
+        <label><input type="radio" formControlName="dateType" value="announcement-recent"> Announcement Date (recent first)</label>
+      </div>
+    </div>
+
+    <!-- Display Options Section -->
+    <div class="form-section">
+      <h2>Display Options</h2>
+      <div class="radio-group">
+        <label><input type="radio" formControlName="showAbstracts" value="show"> Show abstracts</label>
+        <label><input type="radio" formControlName="showAbstracts" value="hide"> Hide abstracts</label>
+      </div>
+      <div class="results-per-page">
+        <label for="results-per-page">Results per page:</label>
+        <select id="results-per-page" formControlName="resultsPerPage">
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+        </select>
+      </div>
+      <label class="checkbox-label">
+        <input type="checkbox" formControlName="includeOlder">
+        Include older versions of papers
+      </label>
+    </div>
+
+    <div class="submit-section">
+      <button type="submit" class="search-btn">Search</button>
+    </div>
+  </form>
+</div>
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/angular-search-app/src/app/search/search.component.css
+// These are the component-specific styles for the search form.
+// ========================================================================
+
+.container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+}
+
+h2 {
+  font-size: 1.5rem;
+  color: var(--secondary-color);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-section {
+  background: var(--form-bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-term-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+.term-input {
+  flex-grow: 1;
+}
+
+.remove-btn, .add-btn {
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.remove-btn {
+  background-color: #f1f1f1;
+  color: var(--danger-color);
+  font-weight: bold;
+}
+
+.add-btn {
+  background-color: #e9ecef;
+  color: var(--primary-color);
+  margin-top: 0.5rem;
+}
+
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.radio-group, .checkbox-label {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.date-range-inputs {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.submit-section {
+  text-align: center;
+}
+
+.search-btn {
+  background-color: var(--accent-color);
+  color: white;
+  font-size: 1.2rem;
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-btn:hover {
+  background-color: var(--accent-hover-color);
+}
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/angular-search-app/src/app/app.routes.ts
+// This file defines the application's routes. It shows that the path `/search`
+// loads the `SearchComponent`, and the empty path redirects to it.
+// ========================================================================
+
+import { Routes } from '@angular/router';
+import { SearchComponent } from './search/search.component';
+import { ResultsComponent } from './results/results.component';
+
+export const routes: Routes = [
+  { path: 'search', component: SearchComponent },
+  { path: 'results', component: ResultsComponent },
+  { path: '', redirectTo: '/search', pathMatch: 'full' },
+  { path: '**', redirectTo: '/search' } // Fallback route
+];
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/angular-search-app/src/styles.css
+// These are the global styles that apply to the entire application,
+// including the search form.
+// ========================================================================
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --primary-color: #333;
+  --secondary-color: #555;
+  --background-color: #f8f9fa;
+  --form-bg-color: #ffffff;
+  --border-color: #dee2e6;
+  --accent-color: #007bff;
+  --accent-hover-color: #0056b3;
+  --danger-color: #dc3545;
+}
+
+body {
+  margin: 0;
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+input, select {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: white;
+  font-size: 1rem;
+}
+```// This is a summary of all the code related to the Angular search page.
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/angular-search-app/src/app/search/search.component.ts
+// This is the core component for the search page. It uses Angular's ReactiveFormsModule
+// to manage the form state and logic for constructing the search query.
+// ========================================================================
+
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-search',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule],
+  templateUrl: './search.component.html',
+  styleUrls: ['./search.component.css']
+})
+export class SearchComponent implements OnInit {
+  searchForm!: FormGroup;
+  subjects = ['cs', 'physics', 'econ', 'q-bio', 'eess', 'q-fin', 'math', 'stat'];
+
+  constructor(private fb: FormBuilder, private router: Router) {}
+
+  ngOnInit(): void {
+    this.searchForm = this.fb.group({
+      searchTerms: this.fb.array([this.createSearchTerm()]),
+      subjects: this.fb.group(
+        this.subjects.reduce((acc, subject) => ({ ...acc, [subject]: false }), {})
+      ),
+      crossListed: ['include'],
+      dateFilter: ['all'],
+      specificYear: [''],
+      fromDate: [''],
+      toDate: [''],
+      dateType: ['submission-recent'],
+      showAbstracts: ['show'],
+      resultsPerPage: ['50'],
+      includeOlder: [false]
+    });
+  }
+
+  get searchTermsArray(): FormArray {
+    return this.searchForm.get('searchTerms') as FormArray;
+  }
+
+  createSearchTerm(): FormGroup {
+    return this.fb.group({
+      term: [''],
+      field: ['title']
+    });
+  }
+
+  addSearchTerm(): void {
+    this.searchTermsArray.push(this.createSearchTerm());
+  }
+
+  removeSearchTerm(index: number): void {
+    this.searchTermsArray.removeAt(index);
+  }
+
+  performSearch(): void {
+    if (this.searchForm.invalid) {
+      return;
+    }
+
+    const formValue = this.searchForm.value;
+    const queryParams: any = {};
+
+    // Search terms
+    formValue.searchTerms.forEach((item: any, index: number) => {
+      if (item.term.trim()) {
+        queryParams[`term${index}`] = item.term.trim();
+        queryParams[`field${index}`] = item.field;
+      }
+    });
+
+    // Subjects
+    const selectedSubjects = Object.entries(formValue.subjects)
+      .filter(([_, isSelected]) => isSelected)
+      .map(([subject, _]) => subject);
+    if (selectedSubjects.length > 0) {
+      queryParams.subjects = selectedSubjects.join(',');
+    }
+    queryParams.crossListed = formValue.crossListed;
+
+    // Date filter
+    queryParams.dateFilter = formValue.dateFilter;
+    if (formValue.dateFilter === 'specific_year') {
+      queryParams.year = formValue.specificYear;
+    } else if (formValue.dateFilter === 'date_range') {
+      queryParams.from = formValue.fromDate;
+      queryParams.to = formValue.toDate;
+    }
+    queryParams.dateType = formValue.dateType;
+
+    // Other options
+    queryParams.abstracts = formValue.showAbstracts;
+    queryParams.perPage = formValue.resultsPerPage;
+    queryParams.older = formValue.includeOlder;
+
+    this.router.navigate(['/results'], { queryParams });
+  }
+}
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/angular-search-app/src/app/search/search.component.html
+// This is the HTML template for the search component, defining the structure
+// of the form and binding it to the FormGroup in the component's TypeScript file.
+// ========================================================================
+
+<div class="container">
+  <header>
+    <h1>Advanced Search</h1>
+    <p>Search for academic papers with fine-grained control.</p>
+  </header>
+
+  <form [formGroup]="searchForm" (ngSubmit)="performSearch()">
+    <!-- Search Terms Section -->
+    <div class="form-section">
+      <h2>Search Terms</h2>
+      <div formArrayName="searchTerms">
+        <div *ngFor="let termGroup of searchTermsArray.controls; let i = index" [formGroupName]="i" class="search-term-row">
+          <input type="text" formControlName="term" placeholder="e.g., Graph Neural Networks" class="term-input">
+          <select formControlName="field" class="field-select">
+            <option value="all">All Fields</option>
+            <option value="title">Title</option>
+            <option value="author">Author</option>
+            <option value="abstract">Abstract</option>
+            <option value="comments">Comments</option>
+            <option value="journal_ref">Journal Reference</option>
+            <option value="id">ID</option>
+          </select>
+          <button *ngIf="i > 0" type="button" (click)="removeSearchTerm(i)" class="remove-btn">×</button>
+        </div>
+      </div>
+      <button type="button" (click)="addSearchTerm()" class="add-btn">Add another term</button>
+    </div>
+
+    <!-- Subject Filter Section -->
+    <div class="form-section" formGroupName="subjects">
+      <h2>Filter by Subject</h2>
+      <div class="subject-grid">
+        <label *ngFor="let subject of subjects">
+          <input type="checkbox" [formControlName]="subject">
+          {{ subject.replace(/_/g, ' ') | titlecase }}
+        </label>
+      </div>
+      <div class="radio-group">
+        <label><input type="radio" formControlName="crossListed" value="include"> Include cross-listed</label>
+        <label><input type="radio" formControlName="crossListed" value="exclude"> Exclude cross-listed</label>
+      </div>
+    </div>
+
+    <!-- Date Filter Section -->
+    <div class="form-section">
+      <h2>Filter by Date</h2>
+      <select formControlName="dateFilter">
+        <option value="all">All dates</option>
+        <option value="past_12_months">Past 12 months</option>
+        <option value="specific_year">Specific year</option>
+        <option value="date_range">Date range</option>
+      </select>
+      <input *ngIf="searchForm.get('dateFilter')?.value === 'specific_year'" type="number" formControlName="specificYear" placeholder="YYYY" class="date-input">
+      <div *ngIf="searchForm.get('dateFilter')?.value === 'date_range'" class="date-range-inputs">
+        <input type="date" formControlName="fromDate">
+        <span>to</span>
+        <input type="date" formControlName="toDate">
+      </div>
+      <div class="radio-group">
+        <label><input type="radio" formControlName="dateType" value="submission-recent"> Submission Date (recent first)</label>
+        <label><input type="radio" formControlName="dateType" value="announcement-recent"> Announcement Date (recent first)</label>
+      </div>
+    </div>
+
+    <!-- Display Options Section -->
+    <div class="form-section">
+      <h2>Display Options</h2>
+      <div class="radio-group">
+        <label><input type="radio" formControlName="showAbstracts" value="show"> Show abstracts</label>
+        <label><input type="radio" formControlName="showAbstracts" value="hide"> Hide abstracts</label>
+      </div>
+      <div class="results-per-page">
+        <label for="results-per-page">Results per page:</label>
+        <select id="results-per-page" formControlName="resultsPerPage">
+          <option value="25">25</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+          <option value="200">200</option>
+        </select>
+      </div>
+      <label class="checkbox-label">
+        <input type="checkbox" formControlName="includeOlder">
+        Include older versions of papers
+      </label>
+    </div>
+
+    <div class="submit-section">
+      <button type="submit" class="search-btn">Search</button>
+    </div>
+  </form>
+</div>
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/angular-search-app/src/app/search/search.component.css
+// These are the component-specific styles for the search form.
+// ========================================================================
+
+.container {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 1rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+h1 {
+  font-size: 2.5rem;
+  color: var(--primary-color);
+}
+
+h2 {
+  font-size: 1.5rem;
+  color: var(--secondary-color);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-section {
+  background: var(--form-bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-term-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  align-items: center;
+}
+
+.term-input {
+  flex-grow: 1;
+}
+
+.remove-btn, .add-btn {
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.remove-btn {
+  background-color: #f1f1f1;
+  color: var(--danger-color);
+  font-weight: bold;
+}
+
+.add-btn {
+  background-color: #e9ecef;
+  color: var(--primary-color);
+  margin-top: 0.5rem;
+}
+
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.radio-group, .checkbox-label {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.date-range-inputs {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.submit-section {
+  text-align: center;
+}
+
+.search-btn {
+  background-color: var(--accent-color);
+  color: white;
+  font-size: 1.2rem;
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.search-btn:hover {
+  background-color: var(--accent-hover-color);
+}
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/angular-search-app/src/app/app.routes.ts
+// This file defines the application's routes. It shows that the path `/search`
+// loads the `SearchComponent`, and the empty path redirects to it.
+// ========================================================================
+
+import { Routes } from '@angular/router';
+import { SearchComponent } from './search/search.component';
+import { ResultsComponent } from './results/results.component';
+
+export const routes: Routes = [
+  { path: 'search', component: SearchComponent },
+  { path: 'results', component: ResultsComponent },
+  { path: '', redirectTo: '/search', pathMatch: 'full' },
+  { path: '**', redirectTo: '/search' } // Fallback route
+];
+
+
+// ========================================================================
+// Filepath: /Users/keshav/Downloads/Dark_patterns/Arxiv/angular-search-app/src/styles.css
+// These are the global styles that apply to the entire application,
+// including the search form.
+// ========================================================================
+
+:root {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --primary-color: #333;
+  --secondary-color: #555;
+  --background-color: #f8f9fa;
+  --form-bg-color: #ffffff;
+  --border-color: #dee2e6;
+  --accent-color: #007bff;
+  --accent-hover-color: #0056b3;
+  --danger-color: #dc3545;
+}
+
+body {
+  margin: 0;
+  background-color: var(--background-color);
+  color: var(--primary-color);
+}
+
+input, select {
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: white;
+  font-size: 1rem;
+}
